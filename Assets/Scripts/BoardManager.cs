@@ -20,6 +20,10 @@ public class BoardManager : MonoBehaviour {
     private List<Transform> unitGridTop;
     private List<Transform> unitGridBottom;
 
+    //所有弓箭手
+    [HideInInspector] public List<ShaderSetUp> _shaderSetUpArchers = new List<ShaderSetUp>();
+
+
     void Awake () {
         if (instance == null)
             instance = this;
@@ -32,6 +36,12 @@ public class BoardManager : MonoBehaviour {
         InitializeGridCoordinates();
         LayoutObjectAtRandom(true, archer, 2, 12); // top
         LayoutObjectAtRandom(false, archer, 2, 12); // bottom
+        //获得所有的弓箭手
+        foreach(GameObject archerInLoaded in GameObject.FindGameObjectsWithTag("Archer")){
+            ShaderSetUp shaderSetUp = archerInLoaded.GetComponent<ShaderSetUp>();
+            if(shaderSetUp != null)
+                _shaderSetUpArchers.Add(shaderSetUp);
+        }
 
         PrintGrids();
 
