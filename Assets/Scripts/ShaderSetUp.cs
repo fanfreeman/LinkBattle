@@ -2,30 +2,27 @@
 using System.Collections;
 using System.Collections.Generic;
 public class ShaderSetUp : MonoBehaviour {
+
     public Shader shader;
     public GameObject body;
+    public bool isMouseOverEffectEnabled = true;
+
     private SpriteRenderer[] sRens;
     private List<Shader> initShader = new List<Shader>();
-    // Use this for initialization
+
 	void Start () {
         sRens = body.GetComponentsInChildren<SpriteRenderer>();
         getInitMaterial();
-        //for test
-        //SetUpMaterial();
     }
 
     void  OnMouseEnter()
     {
-        //print ("OnMouseOver："+gameObject.tag);
-        foreach(ShaderSetUp ssu in BoardManager.instance._shaderSetUpArchers)
-            ssu.SetUpMaterial();
+        if (isMouseOverEffectEnabled) SetUpMaterial();
     }
 
     void  OnMouseExit()
     {
-        //print ("OnMouseOver："+gameObject.tag);
-        foreach(ShaderSetUp ssu in BoardManager.instance._shaderSetUpArchers)
-            ssu.SetToInitMaterial();
+        if (isMouseOverEffectEnabled) SetToInitMaterial();
     }
 
     private void getInitMaterial() {
@@ -47,6 +44,4 @@ public class ShaderSetUp : MonoBehaviour {
             pointer++;
         }
     }
-
-
 }

@@ -2,6 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 
+/**
+ * 术语定义：
+ * TopHalf 上半棋盘
+ * BottomHalf 下半棋盘
+ * Column 某一列
+ * Row 某一行
+ * Position 单位/格位在某半边棋盘上的xy坐标，x = 0 ~ numColumns - 1, y = 0 ~ numRowsPerSide - 1, 与在屏幕上的像素位置无关
+ * Coordinates 单位/格位在屏幕上的像素位置
+ * Head 某一列的头部的格位
+ * Tail 某一列的尾部的格位
+ * Move 步数，每回合可以走三步
+ */
 public class BoardManager : MonoBehaviour {
 
     public static BoardManager instance = null;
@@ -9,76 +21,48 @@ public class BoardManager : MonoBehaviour {
     // 兵种
     public GameObject archer;
 
+    // 棋盘每一边的大小
     public int numColumns = 8;
     public int numRowsPerSide = 6;
+
+    // 玩家捡起的单位
+    public Unit unitBeingPickedUp = null;
 
     // 空档格位的xy坐标列表
     private List<Vector3> gridCoordinatesTop = new List<Vector3>();
     private List<Vector3> gridCoordinatesBottom = new List<Vector3>();
 
     // 存储所有单位的数组matrix
-    private List<Transform> unitGridTop;
-    private List<Transform> unitGridBottom;
+    private List<Unit> unitGridTop;
+    private List<Unit> unitGridBottom;
 
-    //所有弓箭手
-    [HideInInspector] public List<ShaderSetUp> _shaderSetUpArchers = new List<ShaderSetUp>();
-
-
-    void Awake () {
+    public void SetupScene() {
         if (instance == null)
             instance = this;
         else if (instance != this)
             Destroy(gameObject);
-    }
 
-    public void SetupScene() {
         SetUpGrids();
         InitializeGridCoordinates();
         LayoutObjectAtRandom(true, archer, 2, 12); // top
         LayoutObjectAtRandom(false, archer, 2, 12); // bottom
-        //获得所有的弓箭手
-        foreach(GameObject archerInLoaded in GameObject.FindGameObjectsWithTag("Archer")){
-            ShaderSetUp shaderSetUp = archerInLoaded.GetComponent<ShaderSetUp>();
-            if(shaderSetUp != null)
-                _shaderSetUpArchers.Add(shaderSetUp);
-        }
 
         PrintGrids();
 
-        StartCoroutine(ConsolidateTop());
-        StartCoroutine(ConsolidateBottom());
-
-
-        //for (int y = 0; y < numRowsPerSide; y++)
-        //{
-        //    for (int x = 0; x < numColumns; x++)
-        //    {
-        //        Transform t = GetTopUnitAtPosition(x, y);
-        //        if (t != null)
-        //        {
-        //            Unit u = t.GetComponent<Unit>();
-        //            Debug.Log(u.GetTypeString());
-
-        //            if (y > 0)
-        //            {
-        //                Vector3 moveToPos = GetTopCoordinatesAtPosition(x, y - 1);
-        //                iTween.MoveTo(t.gameObject, moveToPos, 2);
-        //            }
-        //        }
-        //    }
-        //}
+        StartCoroutine(TopHalf_ConsolidateUnits());
+        StartCoroutine(BottomHalf_ConsolidateUnits());
     }
 
     void SetUpGrids() {
         // 初始化棋盘上半部分的grid为null
-        unitGridTop = new List<Transform>(numColumns * numRowsPerSide);
+        unitGridTop = new List<Unit>(numColumns * numRowsPerSide);
         for (int i = 0; i < numColumns * numRowsPerSide; i++)
         {
             unitGridTop.Add(null);
         }
 
         // 初始化棋盘下半部分的grid为null
-        unitGridBottom = new List<Transform>(numColumns * numRowsPerSide);
+        unitGridBottom = new List<Unit>(numColumns * numRowsPerSide);
         for (int i = 0; i < numColumns * numRowsPerSide; i++)
         {
             unitGridBottom.Add(null);
@@ -90,14 +74,14 @@ public class BoardManager : MonoBehaviour {
      */
     void InitializeGridCoordinates()
     {
-        // top
+        // top half
         for (int y = 0; y < numRowsPerSide; y++) {
             for (int x = 0; x < numColumns; x++) {
                 gridCoordinatesTop.Add(new Vector3(x - numColumns / 2 + 0.5f, y + 1, 0f));
             }
         }
         
-        // bottom
+        // bottom half
         for (int y = numRowsPerSide - 1; y >= 0; y--) {
             for (int x = 0; x < numColumns; x++) {
                 gridCoordinatesBottom.Add(new Vector3(x - numColumns / 2 + 0.5f, y - 7, 0f));
@@ -105,9 +89,10 @@ public class BoardManager : MonoBehaviour {
         }
     }
 
-    int RandomPositionTop() {
+    // 在上半棋盘随机找个格位
+    int TopHalf_RandomPosition() {
         int randomIndex = Random.Range(0, unitGridTop.Count);
-        Transform unit = unitGridTop[randomIndex];
+        Unit unit = unitGridTop[randomIndex];
         while (unit != null)
         {
             randomIndex = Random.Range(0, unitGridTop.Count);
@@ -116,9 +101,10 @@ public class BoardManager : MonoBehaviour {
         return randomIndex;
     }
 
-    int RandomPositionBottom() {
+    // 在下半棋盘随机找个格位
+    int BottomHalf_RandomPosition() {
         int randomIndex = Random.Range(0, unitGridBottom.Count);
-        Transform unit = unitGridBottom[randomIndex];
+        Unit unit = unitGridBottom[randomIndex];
         while (unit != null)
         {
             randomIndex = Random.Range(0, unitGridBottom.Count);
@@ -128,84 +114,101 @@ public class BoardManager : MonoBehaviour {
     }
 
     // 随机找空格位放置单位
-    void LayoutObjectAtRandom(bool isTop, GameObject gameObject, int minimum, int maximum) {
+    void LayoutObjectAtRandom(bool isTopHalf, GameObject gameObject, int minimum, int maximum) {
         int objectCount = Random.Range(minimum, maximum + 1);
         for (int i = 0; i < objectCount; i++)  {
             int randomIndex;
-            if (isTop)
+            if (isTopHalf)
             {
-                randomIndex = RandomPositionTop();
+                randomIndex = TopHalf_RandomPosition();
                 Vector3 coordinates = gridCoordinatesTop[randomIndex];
                 GameObject obj = Instantiate(gameObject, coordinates, Quaternion.identity) as GameObject;
-                unitGridTop[randomIndex] = obj.transform;
+                Vector2 position = GetPositionGivenArrayIndex(randomIndex);
+                unitGridTop[randomIndex] = obj.GetComponent<Unit>();
+                unitGridTop[randomIndex].SetPositionValues((int)position.x, (int)position.y);
+                unitGridTop[randomIndex].SetIsAtBottom(false);
             }
             else
             {
-                randomIndex = RandomPositionBottom();
+                randomIndex = BottomHalf_RandomPosition();
                 Vector3 coordinates = gridCoordinatesBottom[randomIndex];
                 GameObject obj = Instantiate(gameObject, coordinates, Quaternion.identity) as GameObject;
-                unitGridBottom[randomIndex] = obj.transform;
+                Vector2 position = GetPositionGivenArrayIndex(randomIndex);
+                unitGridBottom[randomIndex] = obj.GetComponent<Unit>();
+                unitGridBottom[randomIndex].SetPositionValues((int)position.x, (int)position.y);
+                unitGridBottom[randomIndex].SetIsAtBottom(true);
             }
             
         }
     }
 
     // 提供xy，获得该格位的单位（或null）
-    Transform GetTopUnitAtPosition(int x, int y)
+    Unit TopHalf_GetUnitAtPosition(int x, int y)
     {
         return unitGridTop[y * numColumns + x];
     }
 
-    Transform GetBottomUnitAtPosition(int x, int y)
+    // 提供xy，获得该格位的单位（或null）
+    Unit BottomHalf_GetUnitAtPosition(int x, int y)
     {
         return unitGridBottom[y * numColumns + x];
     }
 
-    void SetTopUnitAtPosition(Transform unit, int x, int y)
+    // 提供单位及xy，将该单位放置在此格位
+    public void TopHalf_SetUnitAtPosition(Unit unit, int x, int y)
     {
         unitGridTop[y * numColumns + x] = unit;
     }
 
-    void SetBottomUnitAtPosition(Transform unit, int x, int y)
+    // 提供单位及xy，将该单位放置在此格位
+    public void BottomHalf_SetUnitAtPosition(Unit unit, int x, int y)
     {
         unitGridBottom[y * numColumns + x] = unit;
     }
 
     // 提供xy，获得该格位的screen coordinates
-    Vector3 GetTopCoordinatesAtPosition(int x, int y)
+    public Vector3 TopHalf_GetCoordinatesAtPosition(int x, int y)
     {
         return gridCoordinatesTop[y * numColumns + x];
     }
-    Vector3 GetBottomCoordinatesAtPosition(int x, int y)
+
+    // 提供xy，获得该格位的screen coordinates
+    public Vector3 BottomHalf_GetCoordinatesAtPosition(int x, int y)
     {
         return gridCoordinatesBottom[y * numColumns + x];
     }
 
+    // 提供array index，获得该格位的xy（上下部分通用）
+    Vector2 GetPositionGivenArrayIndex(int index)
+    {
+        int x = index % numColumns;
+        int y = index / numColumns;
+        return new Vector2(x, y);
+    }
+
     // 将上半部分所有单位往下推
-    IEnumerator ConsolidateTop()
+    IEnumerator TopHalf_ConsolidateUnits()
     {
         for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往下推
         {
             for (int x = 0; x < numColumns; x++)
             {
-                Transform t = GetTopUnitAtPosition(x, y);
-                if (t != null)
+                Unit unit = TopHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
                 {
-                    int currentY = y;
                     int newY = y - 1;
                     while (newY >= 0)
                     {
-                        if (GetTopUnitAtPosition(x, newY) == null) // 下一行有空位
+                        if (TopHalf_GetUnitAtPosition(x, newY) == null) // 往前一行有空位
                         {
-                            SetTopUnitAtPosition(null, x, currentY);
-                            SetTopUnitAtPosition(t, x, newY);
-                            currentY = newY;
-
-                            Vector3 moveToPos = GetTopCoordinatesAtPosition(x, newY);
-                            iTween.MoveTo(t.gameObject, moveToPos, 1f);
+                            unit.MoveToPosition(x, newY);
                             yield return new WaitForSeconds(0.1f);
                         }
-                        else break; // 如果下一行没有空位，则再往下也不会有空位了
+                        else
+                        {
+                            TopHalf_CheckFormationForUnit(unit);
+                            break; // 如果往前一行没有空位，则再往前也不会有空位了
+                        }
                         newY--;
                     }
                 }
@@ -216,30 +219,28 @@ public class BoardManager : MonoBehaviour {
     }
 
     // 将下半部分所有单位往上推
-    IEnumerator ConsolidateBottom()
+    IEnumerator BottomHalf_ConsolidateUnits()
     {
         for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往上推
         {
             for (int x = 0; x < numColumns; x++)
             {
-                Transform t = GetBottomUnitAtPosition(x, y);
-                if (t != null)
+                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
                 {
-                    int currentY = y;
                     int newY = y - 1;
                     while (newY >= 0)
                     {
-                        if (GetBottomUnitAtPosition(x, newY) == null) // 上一行有空位
+                        if (BottomHalf_GetUnitAtPosition(x, newY) == null) // 往前一行有空位
                         {
-                            SetBottomUnitAtPosition(null, x, currentY);
-                            SetBottomUnitAtPosition(t, x, newY);
-                            currentY = newY;
-
-                            Vector3 moveToPos = GetBottomCoordinatesAtPosition(x, newY);
-                            iTween.MoveTo(t.gameObject, moveToPos, 1f);
+                            unit.MoveToPosition(x, newY);
                             yield return new WaitForSeconds(0.1f);
                         }
-                        else break; // 如果上一行没有空位，则再往上也不会有空位了
+                        else
+                        {
+                            BottomHalf_CheckFormationForUnit(unit);
+                            break; // 如果往前一行没有空位，则再往前也不会有空位了
+                        }
                         newY--;
                     }
                 }
@@ -247,8 +248,171 @@ public class BoardManager : MonoBehaviour {
                 yield return null;
             }
         }
+
+        GameManager.instance.GoToNextTurn();
     }
 
+    // 找到指定单位离队首更近一格的单位
+    Unit TopHalf_GetUnitInFrontOfUnit(Unit unit)
+    {
+        if (unit.boardY == 0) return null;
+        return TopHalf_GetUnitAtPosition(unit.boardX, unit.boardY - 1);
+    }
+
+    // 找到指定单位离队首更近一格的单位
+    Unit BottomHalf_GetUnitInFrontOfUnit(Unit unit)
+    {
+        if (unit.boardY == 0) return null;
+        return BottomHalf_GetUnitAtPosition(unit.boardX, unit.boardY - 1);
+    }
+
+    // 找到指定单位离队首更近两格的单位
+    Unit TopHalf_GetUnitTwoInFrontOfUnit(Unit unit)
+    {
+        if (unit.boardY <= 1) return null;
+        return TopHalf_GetUnitAtPosition(unit.boardX, unit.boardY - 2);
+    }
+
+    // 找到指定单位离队首更近两格的单位
+    Unit BottomHalf_GetUnitTwoInFrontOfUnit(Unit unit)
+    {
+        if (unit.boardY <= 1) return null;
+        return BottomHalf_GetUnitAtPosition(unit.boardX, unit.boardY - 2);
+    }
+
+    // 检测指定单位是否形成三连
+    public void TopHalf_CheckFormationForUnit(Unit unit)
+    {
+        if (unit.boardY <= 1) return;
+        Unit unitAbove = TopHalf_GetUnitInFrontOfUnit(unit);
+        Unit unitTwoAbove = TopHalf_GetUnitTwoInFrontOfUnit(unit);
+        if (unitAbove != null && unitTwoAbove != null)
+        {
+            if (!unit.isActivated && !unitAbove.isActivated && !unitTwoAbove.isActivated)
+            {
+                unit.Activate();
+                unitAbove.Activate();
+                unitTwoAbove.Activate();
+            }
+        }
+    }
+
+    // 检测指定单位是否形成三连
+    public void BottomHalf_CheckFormationForUnit(Unit unit)
+    {
+        if (unit.boardY <= 1) return;
+        Unit unitAbove = BottomHalf_GetUnitInFrontOfUnit(unit);
+        Unit unitTwoAbove = BottomHalf_GetUnitTwoInFrontOfUnit(unit);
+        if (unitAbove != null && unitTwoAbove != null)
+        {
+            if (!unit.isActivated && !unitAbove.isActivated && !unitTwoAbove.isActivated)
+            {
+                unit.Activate();
+                unitAbove.Activate();
+                unitTwoAbove.Activate();
+            }
+        }
+    }
+
+    // 检测指定单位是否在其所在column的最尾部
+    public bool TopHalf_CheckIfUnitIsAtTail(Unit unit)
+    {
+        int unitX = unit.boardX;
+        int unitY = unit.boardY;
+
+        for (int y = unitY + 1; y < numRowsPerSide; y++)
+        {
+            if (TopHalf_GetUnitAtPosition(unitX, y) != null) // 下边的某一行有其它单位
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 检测指定单位是否在其所在column的最尾部
+    public bool BottomHalf_CheckIfUnitIsAtTail(Unit unit)
+    {
+        int unitX = unit.boardX;
+        int unitY = unit.boardY;
+
+        for (int y = unitY + 1; y < numRowsPerSide; y++)
+        {
+            if (BottomHalf_GetUnitAtPosition(unitX, y) != null) // 下边的某一行有其它单位
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // 找到某一列最靠头部的空格位
+    public int TopHalf_FindEmptySpaceInColumnClosestToHead(int col)
+    {
+        for (int y = 0; y < numRowsPerSide; y++)
+        {
+            if (TopHalf_GetUnitAtPosition(col, y) == null) // 某一row没有其它单位
+            {
+                return y;
+            }
+        }
+
+        return -1; // 该column没有空格位
+    }
+
+    // 找到某一列最靠头部的空格位
+    public int BottomHalf_FindEmptySpaceInColumnClosestToHead(int col)
+    {
+        for (int y = 0; y < numRowsPerSide; y++)
+        {
+            if (BottomHalf_GetUnitAtPosition(col, y) == null) // 某一row没有其它单位
+            {
+                return y;
+            }
+        }
+
+        return -1; // 该column没有空格位
+    }
+
+    // 让单位从column尾部走入该column
+    public bool TopHalf_LetUnitEnterColumnFromTail(Unit unit, int columnNumber)
+    {
+        int y = BoardManager.instance.TopHalf_FindEmptySpaceInColumnClosestToHead(columnNumber);
+        if (y != -1) // 选定的column有空格位
+        {
+            iTween.Stop(unit.gameObject);
+            Vector3 moveToCoords = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(columnNumber, y);
+            Vector3 currentCoords = unit.transform.position;
+            currentCoords.x = moveToCoords.x;
+            unit.transform.position = currentCoords;
+            unit.MoveToPosition(columnNumber, y);
+            TopHalf_CheckFormationForUnit(unit);
+            return true;
+        }
+
+        return false;
+    }
+
+    // 让单位从column尾部走入该column
+    public bool BottomHalf_LetUnitEnterColumnFromTail(Unit unit, int columnNumber)
+    {
+        int y = BoardManager.instance.BottomHalf_FindEmptySpaceInColumnClosestToHead(columnNumber);
+        if (y != -1) // 选定的column有空格位
+        {
+            iTween.Stop(unit.gameObject);
+            Vector3 moveToCoords = BoardManager.instance.BottomHalf_GetCoordinatesAtPosition(columnNumber, y);
+            Vector3 currentCoords = unit.transform.position;
+            currentCoords.x = moveToCoords.x;
+            unit.transform.position = currentCoords;
+            unit.MoveToPosition(columnNumber, y);
+            BottomHalf_CheckFormationForUnit(unit);
+            return true;
+        }
+
+        return false;
+    }
+
+    // 显示棋盘，测试用
     void PrintGrids()
     {
         // top
@@ -258,7 +422,7 @@ public class BoardManager : MonoBehaviour {
             string row = "";
             for (int x = 0; x < numColumns; x++)
             {
-                if (GetTopUnitAtPosition(x, y) != null) row += "U ";
+                if (TopHalf_GetUnitAtPosition(x, y) != null) row += "U ";
                 else row += "o ";
             }
             output += row + "\n";
@@ -272,7 +436,7 @@ public class BoardManager : MonoBehaviour {
             string row = "";
             for (int x = 0; x < numColumns; x++)
             {
-                if (GetBottomUnitAtPosition(x, y) != null) row += "U ";
+                if (BottomHalf_GetUnitAtPosition(x, y) != null) row += "U ";
                 else row += "o ";
             }
             output += row + "\n";

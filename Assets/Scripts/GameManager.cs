@@ -1,12 +1,26 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class GameManager : MonoBehaviour {
 
     public static GameManager instance = null;
 
-    public BoardManager boardScript;
+    public GameObject columnHighlightPrefab;
+    public GameObject selectorTop;
+    public GameObject selectorBottom;
 
+    [HideInInspector] public BoardManager boardScript;
+    [HideInInspector] public bool playersTurn = false;
+    [HideInInspector] public GameObject columnHighlight;
+    [HideInInspector] public GameObject hudCanvas;
+    [HideInInspector] public bool canMove = false;
+
+    int movesLeftThisTurn = 3;
+    Text moveTextTop;
+    Text moveTextBottom;
+    TurnMessageController turnMessageController;
+    
     void Awake() {
         if (instance == null)
             instance = this;
@@ -14,6 +28,15 @@ public class GameManager : MonoBehaviour {
             Destroy(gameObject);
 
         DontDestroyOnLoad(gameObject);
+        
+        moveTextTop = selectorTop.GetComponentInChildren<Text>();
+        moveTextBottom = selectorBottom.GetComponentInChildren<Text>();
+        selectorTop.SetActive(false);
+        selectorBottom.SetActive(false);
+
+        hudCanvas = GameObject.Find("HudCanvas");
+        turnMessageController = hudCanvas.GetComponentInChildren<TurnMessageController>();
+
         boardScript = GetComponent<BoardManager>();
         InitGame();
     }
@@ -21,5 +44,73 @@ public class GameManager : MonoBehaviour {
     void InitGame()
     {
         boardScript.SetupScene();
+        CreateColumnHighlight();
+    }
+
+    void CreateColumnHighlight()
+    {
+        Vector3 coordinates = new Vector3();
+        columnHighlight = Instantiate(columnHighlightPrefab, coordinates, Quaternion.identity) as GameObject;
+        columnHighlight.SetActive(false);
+    }
+
+    public void SetColumnHighlightEnabled(bool isEnabled, float boardCoordX)
+    {
+        Vector3 currentCoords = columnHighlight.transform.position;
+        currentCoords.x = boardCoordX;
+        columnHighlight.transform.position = currentCoords;
+        columnHighlight.SetActive(isEnabled);
+        iTween.Stop(columnHighlight);
+    }
+
+    // 用掉一个move
+    public void UseOneMove()
+    {
+        movesLeftThisTurn--;
+        SetNumberOfMovesText();
+
+        if (movesLeftThisTurn == 0)
+        {
+            GoToNextTurn();
+        }
+    }
+
+    void SetNumberOfMovesText()
+    {
+        if (playersTurn) moveTextBottom.text = movesLeftThisTurn.ToString();
+        else moveTextTop.text = movesLeftThisTurn.ToString();
+    }
+
+    // 进入下一回合，开始显示回合message
+    public void GoToNextTurn()
+    {
+        playersTurn = !playersTurn;
+        movesLeftThisTurn = 3;
+        SetNumberOfMovesText();
+        RevokeControl();
+        turnMessageController.Show();
+    }
+
+    // 显示回合message后，真正的回合开始
+    public void TurnStartGrantControl()
+    {
+        if (playersTurn)
+        {
+            selectorBottom.SetActive(true);
+        }
+        else
+        {
+            selectorTop.SetActive(true);
+        }
+
+        canMove = true;
+    }
+    
+    // 紧张玩家操作
+    void RevokeControl()
+    {
+        canMove = false;
+        selectorTop.SetActive(false);
+        selectorBottom.SetActive(false);
     }
 }
