@@ -36,20 +36,42 @@ public class ColumnCollider : MonoBehaviour
         {
             if (GameManager.instance.playersTurn)
             {
-                if (BoardManager.instance.BottomHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                if (BoardManager.instance.unitBeingPickedUp.boardX == columnNumber) // 玩家把单位放回至其所在的列，不减少move
                 {
-                    BoardManager.instance.unitBeingPickedUp = null;
-                    GameManager.instance.SetColumnHighlightEnabled(false, 0f);
-                    GameManager.instance.UseOneMove();
+                    if (BoardManager.instance.BottomHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                    {
+                        BoardManager.instance.unitBeingPickedUp = null;
+                        GameManager.instance.SetColumnHighlightEnabled(false, 0f);
+                    }
+                }
+                else // 玩家将单位放在另一列，用掉一个move
+                {
+                    if (BoardManager.instance.BottomHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                    {
+                        BoardManager.instance.unitBeingPickedUp = null;
+                        GameManager.instance.SetColumnHighlightEnabled(false, 0f);
+                        GameManager.instance.UseOneMove();
+                    }
                 }
             }
             else
             {
-                if (BoardManager.instance.TopHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                if (BoardManager.instance.unitBeingPickedUp.boardX == columnNumber) // 玩家把单位放回至其所在的列，不减少move
                 {
-                    BoardManager.instance.unitBeingPickedUp = null;
-                    GameManager.instance.SetColumnHighlightEnabled(false, 0f);
-                    GameManager.instance.UseOneMove();
+                    if (BoardManager.instance.TopHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                    {
+                        BoardManager.instance.unitBeingPickedUp = null;
+                        GameManager.instance.SetColumnHighlightEnabled(false, 0f);
+                    }
+                }
+                else // 玩家将单位放在另一列，用掉一个move
+                {
+                    if (BoardManager.instance.TopHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                    {
+                        BoardManager.instance.unitBeingPickedUp = null;
+                        GameManager.instance.SetColumnHighlightEnabled(false, 0f);
+                        GameManager.instance.UseOneMove();
+                    }
                 }
             }
         }

@@ -96,6 +96,7 @@ public class GameManager : MonoBehaviour {
     {
         if (playersTurn)
         {
+            StartCoroutine(BoardManager.instance.BottomHalf_ReadyForAttack());
             selectorBottom.SetActive(true);
         }
         else
@@ -106,7 +107,7 @@ public class GameManager : MonoBehaviour {
         canMove = true;
     }
     
-    // 紧张玩家操作
+    // 回合结束后，禁止玩家操作
     void RevokeControl()
     {
         canMove = false;

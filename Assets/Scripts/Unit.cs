@@ -1,23 +1,42 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public abstract class Unit : MonoBehaviour {
 
+    [HideInInspector]
     public int boardX;
+    [HideInInspector]
     public int boardY;
+    [HideInInspector]
     public bool isAtBottom;
+    [HideInInspector]
     public bool isActivated = false;
 
     static int outOfTopEdgeY = 12;
     static int outOfBottomEdgeY = -12;
+    static Color healthBarMinColor = Color.red;
+    static Color healthBarMaxColor = Color.green;
 
     public abstract string GetTypeString();
 
     ShaderSetUp shaderSetUpScript;
+    RawImage healthBarImage;
+    UnitAnimationController animController;
+
+    int healthMax = 100;
+    int healthCurrent;
+
+    List<Unit> attackBuddies;
 
     void Awake()
     {
         shaderSetUpScript = GetComponent<ShaderSetUp>();
+        healthBarImage = GetComponentInChildren<RawImage>();
+        animController = GetComponent<UnitAnimationController>();
+        SetHealth(healthMax);
+        attackBuddies = new List<Unit>(2);
     }
 
     // 设置此单位的位置
@@ -112,5 +131,36 @@ public abstract class Unit : MonoBehaviour {
         Transform activationParticleObject = transform.Find("ActivationParticles");
         activationParticleObject.gameObject.SetActive(true);
         shaderSetUpScript.isMouseOverEffectEnabled = false;
+    }
+
+    void SetHealth(int val)
+    {
+        healthCurrent = val;
+        float scaleFactor = (float)healthCurrent / healthMax;
+        Vector3 scale = healthBarImage.transform.localScale;
+        scale.x = scaleFactor;
+        healthBarImage.transform.localScale = scale;
+        healthBarImage.color = Color.Lerp(healthBarMinColor, healthBarMaxColor, scaleFactor);
+    }
+
+    public void AddAttackBuddy(Unit unit)
+    {
+        attackBuddies.Add(unit);
+    }
+
+    void ResetAttackBuddies()
+    {
+        attackBuddies.Clear();
+    }
+
+    public void Attack()
+    {
+        Debug.Log("Attacking!");
+        foreach (Unit unit in attackBuddies)
+        {
+            BoardManager.instance.BottomHalf_RemoveUnitFromBoard(unit);
+        }
+        BoardManager.instance.BottomHalf_RemoveUnitFromBoard(this);
+        ResetAttackBuddies();
     }
 }

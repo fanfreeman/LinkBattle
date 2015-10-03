@@ -305,11 +305,13 @@ public class BoardManager : MonoBehaviour {
         Unit unitTwoAbove = BottomHalf_GetUnitTwoInFrontOfUnit(unit);
         if (unitAbove != null && unitTwoAbove != null)
         {
-            if (!unit.isActivated && !unitAbove.isActivated && !unitTwoAbove.isActivated)
+            if (!unit.isActivated && !unitAbove.isActivated && !unitTwoAbove.isActivated) // 组成三连formation
             {
                 unit.Activate();
                 unitAbove.Activate();
                 unitTwoAbove.Activate();
+                unit.AddAttackBuddy(unitAbove);
+                unit.AddAttackBuddy(unitTwoAbove);
             }
         }
     }
@@ -410,6 +412,34 @@ public class BoardManager : MonoBehaviour {
         }
 
         return false;
+    }
+
+    // 检查是否有单位准备好攻击
+    public IEnumerator BottomHalf_ReadyForAttack()
+    {
+        for (int y = numRowsPerSide - 1; y >= 0; y--) // 从第二行开始往上推
+        {
+            for (int x = 0; x < numColumns; x++)
+            {
+                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    if (unit.isActivated)
+                    {
+                        unit.Attack();
+                    }
+                }
+
+                yield return null;
+            }
+        }
+    }
+
+    // 从棋盘上移除指定单位
+    public void BottomHalf_RemoveUnitFromBoard(Unit unit)
+    {
+        iTween.FadeTo(unit.gameObject, 0f, 0.5f);
+        BottomHalf_SetUnitAtPosition(null, unit.boardX, unit.boardY);
     }
 
     // 显示棋盘，测试用
