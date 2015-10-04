@@ -14,8 +14,8 @@ public abstract class Unit : MonoBehaviour {
     [HideInInspector]
     public bool isActivated = false;
 
-    static int outOfTopEdgeY = 12;
-    static int outOfBottomEdgeY = -12;
+    protected static int outOfTopEdgeY = 12;
+    protected static int outOfBottomEdgeY = -12;
     static Color healthBarMinColor = Color.red;
     static Color healthBarMaxColor = Color.green;
 
@@ -25,10 +25,14 @@ public abstract class Unit : MonoBehaviour {
     RawImage healthBarImage;
     UnitAnimationController animController;
 
-    int healthMax = 100;
-    int healthCurrent;
+    public float healthMax = 100f;
+    float healthCurrent;
 
-    List<Unit> attackBuddies;
+    protected List<Unit> attackBuddies;
+    ParticleSystem particleHit;
+    ParticleSystem particleActivation;
+    ParticleSystem particleCountDown;
+    ParticleSystem particleDeath;
 
     void Awake()
     {
@@ -37,6 +41,19 @@ public abstract class Unit : MonoBehaviour {
         animController = GetComponent<UnitAnimationController>();
         SetHealth(healthMax);
         attackBuddies = new List<Unit>(2);
+
+        // 初始化particles
+        Transform particleObject = transform.Find("ParticleExplosion");
+        particleHit = particleObject.GetComponent<ParticleSystem>();
+
+        particleObject = transform.Find("ParticleActivation");
+        particleActivation = particleObject.GetComponent<ParticleSystem>();
+
+        particleObject = transform.Find("ParticleBurst");
+        particleCountDown = particleObject.GetComponent<ParticleSystem>();
+
+        particleObject = transform.Find("ParticleBoom");
+        particleDeath = particleObject.GetComponent<ParticleSystem>();
     }
 
     // 设置此单位的位置
@@ -44,7 +61,6 @@ public abstract class Unit : MonoBehaviour {
     {
         boardX = x;
         boardY = y;
-        Debug.Log("setting position to x: " + x + " y: " + y);
     }
 
     // 设置此单位在棋盘上半部分或下半部分
@@ -128,19 +144,26 @@ public abstract class Unit : MonoBehaviour {
     public void Activate()
     {
         isActivated = true;
-        Transform activationParticleObject = transform.Find("ActivationParticles");
-        activationParticleObject.gameObject.SetActive(true);
+        particleActivation.Play();
         shaderSetUpScript.isMouseOverEffectEnabled = false;
     }
 
-    void SetHealth(int val)
+    void Deactivate()
     {
+        isActivated = false;
+    }
+
+    void SetHealth(float val)
+    {
+        if (val < 0) val = 0;
         healthCurrent = val;
-        float scaleFactor = (float)healthCurrent / healthMax;
+        float scaleFactor = healthCurrent / healthMax;
         Vector3 scale = healthBarImage.transform.localScale;
         scale.x = scaleFactor;
         healthBarImage.transform.localScale = scale;
         healthBarImage.color = Color.Lerp(healthBarMinColor, healthBarMaxColor, scaleFactor);
+
+        if (healthCurrent <= 0) StartCoroutine(Die());
     }
 
     public void AddAttackBuddy(Unit unit)
@@ -148,19 +171,65 @@ public abstract class Unit : MonoBehaviour {
         attackBuddies.Add(unit);
     }
 
-    void ResetAttackBuddies()
+    protected void ResetAttackBuddies()
     {
         attackBuddies.Clear();
     }
 
-    public void Attack()
+    public virtual IEnumerator Attack()
     {
-        Debug.Log("Attacking!");
+        particleCountDown.Play();
+
+        // 攻击动画
         foreach (Unit unit in attackBuddies)
         {
-            BoardManager.instance.BottomHalf_RemoveUnitFromBoard(unit);
+            unit.animController.Attack();
+            unit.Deactivate();
         }
-        BoardManager.instance.BottomHalf_RemoveUnitFromBoard(this);
-        ResetAttackBuddies();
+        animController.Attack();
+        this.Deactivate();
+
+        // 从棋盘上清楚这些单位
+        foreach (Unit unit in attackBuddies)
+        {
+            BoardManager.instance.BottomHalf_SetUnitAtPosition(null, unit.boardX, unit.boardY);
+        }
+        BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
+
+        yield return null;
+    }
+
+    protected IEnumerator Remove()
+    {
+        particleHit.Play();
+        yield return new WaitForSeconds(0.3f);
+
+        //BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
+        Destroy(gameObject);
+    }
+
+    // 单位接收伤害；返回实际造成的伤害值
+    public float TakeDamage(float damage)
+    {
+        // 计算实际造成的伤害值
+        float actualDamage = 0;
+        if (healthCurrent >= damage) actualDamage = damage;
+        else actualDamage = healthCurrent;
+
+        particleHit.Play();
+        SetHealth(healthCurrent - damage);
+        return actualDamage;
+    }
+
+    IEnumerator Die()
+    {
+        if (isAtBottom) BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
+        else BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
+
+        particleDeath.Play();
+        CameraEffects.instance.Shake();
+        yield return new WaitForSeconds(0.3f);
+        
+        Destroy(gameObject);
     }
 }

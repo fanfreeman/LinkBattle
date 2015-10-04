@@ -44,8 +44,8 @@ public class BoardManager : MonoBehaviour {
 
         SetUpGrids();
         InitializeGridCoordinates();
-        LayoutObjectAtRandom(true, archer, 2, 12); // top
-        LayoutObjectAtRandom(false, archer, 2, 12); // bottom
+        LayoutObjectAtRandom(true, archer, 13, 17); // top
+        LayoutObjectAtRandom(false, archer, 13, 17); // bottom
 
         PrintGrids();
 
@@ -221,6 +221,8 @@ public class BoardManager : MonoBehaviour {
     // 将下半部分所有单位往上推
     IEnumerator BottomHalf_ConsolidateUnits()
     {
+        Debug.Log("consolidating bottom half");
+
         for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往上推
         {
             for (int x = 0; x < numColumns; x++)
@@ -426,20 +428,49 @@ public class BoardManager : MonoBehaviour {
                 {
                     if (unit.isActivated)
                     {
-                        unit.Attack();
+                        StartCoroutine(unit.Attack());
+                        yield return new WaitForSeconds(0.3f);
                     }
                 }
 
                 yield return null;
             }
         }
+
+        StartCoroutine(BottomHalf_ConsolidateUnits());
     }
 
-    // 从棋盘上移除指定单位
-    public void BottomHalf_RemoveUnitFromBoard(Unit unit)
+    public void TopHalf_DoConsolidateColumn(int col)
     {
-        iTween.FadeTo(unit.gameObject, 0f, 0.5f);
-        BottomHalf_SetUnitAtPosition(null, unit.boardX, unit.boardY);
+        StartCoroutine(TopHalf_ConsolidateColumn(col));
+    }
+
+    IEnumerator TopHalf_ConsolidateColumn(int col)
+    {
+        for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往尾部推
+        {
+            Unit unit = TopHalf_GetUnitAtPosition(col, y);
+            if (unit != null)
+            {
+                int newY = y - 1;
+                while (newY >= 0)
+                {
+                    if (TopHalf_GetUnitAtPosition(col, newY) == null) // 往前一行有空位
+                    {
+                        unit.MoveToPosition(col, newY);
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                    else
+                    {
+                        TopHalf_CheckFormationForUnit(unit);
+                        break; // 如果往前一行没有空位，则再往前也不会有空位了
+                    }
+                    newY--;
+                }
+            }
+
+            yield return null;
+        }
     }
 
     // 显示棋盘，测试用

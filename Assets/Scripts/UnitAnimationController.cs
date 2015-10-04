@@ -24,6 +24,11 @@ public class UnitAnimationController : MonoBehaviour {
         anim.SetBool(walkID, true);
     }
 
+    public void Attack()
+    {
+        anim.SetTrigger(attackID);
+    }
+
     public void Attack1()
     {
         anim.SetFloat(attackTypeID, 0);
