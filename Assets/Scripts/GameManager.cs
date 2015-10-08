@@ -91,12 +91,23 @@ public class GameManager : MonoBehaviour {
         turnMessageController.Show();
     }
 
-    // 显示回合message后，真正的回合开始
-    public void TurnStartGrantControl()
+    // 显示回合开始message后，第一步是给蓄力中的单位减少蓄力countdown，以及蓄满的单位发动攻击
+    public void TurnStartStep_ChargingUnitsTickDown()
     {
         if (playersTurn)
         {
-            StartCoroutine(BoardManager.instance.BottomHalf_ReadyForAttack());
+            StartCoroutine(BoardManager.instance.BottomHalf_ChargingUnitsTickDown());
+        }
+        else
+        {
+            StartCoroutine(BoardManager.instance.TopHalf_ChargingUnitsTickDown());
+        }
+    }
+
+    public void TurnStartStep_GrantPlayerControl()
+    {
+        if (playersTurn)
+        {
             selectorBottom.SetActive(true);
         }
         else

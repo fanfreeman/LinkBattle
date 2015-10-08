@@ -35,6 +35,6 @@ public class TurnMessageController : MonoBehaviour {
         iTween.Stop(gameObject);
         iTween.MoveTo(gameObject, position, 1f);
 
-        GameManager.instance.TurnStartGrantControl();
+        GameManager.instance.TurnStartStep_ChargingUnitsTickDown();
     }
 }

@@ -50,7 +50,7 @@ public class BoardManager : MonoBehaviour {
         PrintGrids();
 
         StartCoroutine(TopHalf_ConsolidateUnits());
-        StartCoroutine(BottomHalf_ConsolidateUnits());
+        StartCoroutine(BottomHalf_ConsolidateUnits(GameManager.instance, "GoToNextTurn"));
     }
 
     void SetUpGrids() {
@@ -187,7 +187,7 @@ public class BoardManager : MonoBehaviour {
     }
 
     // 将上半部分所有单位往下推
-    IEnumerator TopHalf_ConsolidateUnits()
+    IEnumerator TopHalf_ConsolidateUnits(MonoBehaviour callbackScriptInstance = null, string callbackMethod = null)
     {
         for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往下推
         {
@@ -202,7 +202,7 @@ public class BoardManager : MonoBehaviour {
                         if (TopHalf_GetUnitAtPosition(x, newY) == null) // 往前一行有空位
                         {
                             unit.MoveToPosition(x, newY);
-                            yield return new WaitForSeconds(0.1f);
+                            yield return null;
                         }
                         else
                         {
@@ -216,10 +216,12 @@ public class BoardManager : MonoBehaviour {
                 yield return null;
             }
         }
+
+        if (callbackScriptInstance != null) callbackScriptInstance.SendMessage(callbackMethod);
     }
 
     // 将下半部分所有单位往上推
-    IEnumerator BottomHalf_ConsolidateUnits()
+    IEnumerator BottomHalf_ConsolidateUnits(MonoBehaviour callbackScriptInstance = null, string callbackMethod = null)
     {
         Debug.Log("consolidating bottom half");
 
@@ -236,7 +238,7 @@ public class BoardManager : MonoBehaviour {
                         if (BottomHalf_GetUnitAtPosition(x, newY) == null) // 往前一行有空位
                         {
                             unit.MoveToPosition(x, newY);
-                            yield return new WaitForSeconds(0.1f);
+                            yield return null;
                         }
                         else
                         {
@@ -251,7 +253,7 @@ public class BoardManager : MonoBehaviour {
             }
         }
 
-        GameManager.instance.GoToNextTurn();
+        if (callbackScriptInstance != null) callbackScriptInstance.SendMessage(callbackMethod);
     }
 
     // 找到指定单位离队首更近一格的单位
@@ -286,15 +288,13 @@ public class BoardManager : MonoBehaviour {
     public void TopHalf_CheckFormationForUnit(Unit unit)
     {
         if (unit.boardY <= 1) return;
-        Unit unitAbove = TopHalf_GetUnitInFrontOfUnit(unit);
-        Unit unitTwoAbove = TopHalf_GetUnitTwoInFrontOfUnit(unit);
-        if (unitAbove != null && unitTwoAbove != null)
+        Unit unitInFront = TopHalf_GetUnitInFrontOfUnit(unit);
+        Unit unitTwoInFront = TopHalf_GetUnitTwoInFrontOfUnit(unit);
+        if (unitInFront != null && unitTwoInFront != null)
         {
-            if (!unit.isActivated && !unitAbove.isActivated && !unitTwoAbove.isActivated)
+            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
-                unit.Activate();
-                unitAbove.Activate();
-                unitTwoAbove.Activate();
+                unitTwoInFront.ActivateChargeUp(unitInFront, unit, true);
             }
         }
     }
@@ -303,17 +303,13 @@ public class BoardManager : MonoBehaviour {
     public void BottomHalf_CheckFormationForUnit(Unit unit)
     {
         if (unit.boardY <= 1) return;
-        Unit unitAbove = BottomHalf_GetUnitInFrontOfUnit(unit);
-        Unit unitTwoAbove = BottomHalf_GetUnitTwoInFrontOfUnit(unit);
-        if (unitAbove != null && unitTwoAbove != null)
+        Unit unitInFront = BottomHalf_GetUnitInFrontOfUnit(unit);
+        Unit unitTwoInFront = BottomHalf_GetUnitTwoInFrontOfUnit(unit);
+        if (unitInFront != null && unitTwoInFront != null)
         {
-            if (!unit.isActivated && !unitAbove.isActivated && !unitTwoAbove.isActivated) // 组成三连formation
+            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated) // 组成三连formation
             {
-                unit.Activate();
-                unitAbove.Activate();
-                unitTwoAbove.Activate();
-                unit.AddAttackBuddy(unitAbove);
-                unit.AddAttackBuddy(unitTwoAbove);
+                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true);
             }
         }
     }
@@ -416,20 +412,19 @@ public class BoardManager : MonoBehaviour {
         return false;
     }
 
-    // 检查是否有单位准备好攻击
-    public IEnumerator BottomHalf_ReadyForAttack()
+    // 给所有正在蓄力的单位减少蓄力回合，并让蓄力完毕的单位发动攻击
+    public IEnumerator TopHalf_ChargingUnitsTickDown()
     {
-        for (int y = numRowsPerSide - 1; y >= 0; y--) // 从第二行开始往上推
+        for (int x = 0; x < numColumns; x++)
         {
-            for (int x = 0; x < numColumns; x++)
+            for (int y = numRowsPerSide - 1; y >= 0; y--) // 从最尾部开始检查
             {
-                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                Unit unit = TopHalf_GetUnitAtPosition(x, y);
                 if (unit != null)
                 {
-                    if (unit.isActivated)
+                    if (unit.ChargeUpTickDown())
                     {
-                        StartCoroutine(unit.Attack());
-                        yield return new WaitForSeconds(0.3f);
+                        yield return new WaitForSeconds(0.5f);
                     }
                 }
 
@@ -437,14 +432,40 @@ public class BoardManager : MonoBehaviour {
             }
         }
 
-        StartCoroutine(BottomHalf_ConsolidateUnits());
+        // consolidate棋盘，然后允许玩家控制
+        StartCoroutine(TopHalf_ConsolidateUnits(GameManager.instance, "TurnStartStep_GrantPlayerControl"));
     }
 
+    // 给所有正在蓄力的单位减少蓄力回合，并让蓄力完毕的单位发动攻击
+    public IEnumerator BottomHalf_ChargingUnitsTickDown()
+    {
+        for (int x = 0; x < numColumns; x++)
+        {
+            for (int y = numRowsPerSide - 1; y >= 0; y--) // 从最尾部开始检查
+            {
+                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    if (unit.ChargeUpTickDown())
+                    {
+                        yield return new WaitForSeconds(0.5f);
+                    }
+                }
+
+                yield return null;
+            }
+        }
+
+        // consolidate棋盘，然后允许玩家控制
+        StartCoroutine(BottomHalf_ConsolidateUnits(GameManager.instance, "TurnStartStep_GrantPlayerControl"));
+    }
+
+    // consolidate某一列
     public void TopHalf_DoConsolidateColumn(int col)
     {
         StartCoroutine(TopHalf_ConsolidateColumn(col));
     }
-
+    // consolidate某一列
     IEnumerator TopHalf_ConsolidateColumn(int col)
     {
         for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往尾部推
@@ -463,6 +484,40 @@ public class BoardManager : MonoBehaviour {
                     else
                     {
                         TopHalf_CheckFormationForUnit(unit);
+                        break; // 如果往前一行没有空位，则再往前也不会有空位了
+                    }
+                    newY--;
+                }
+            }
+
+            yield return null;
+        }
+    }
+
+    // consolidate某一列
+    public void BottomHalf_DoConsolidateColumn(int col)
+    {
+        StartCoroutine(BottomHalf_ConsolidateColumn(col));
+    }
+    // consolidate某一列
+    IEnumerator BottomHalf_ConsolidateColumn(int col)
+    {
+        for (int y = 1; y < numRowsPerSide; y++) // 从第二行开始往尾部推
+        {
+            Unit unit = BottomHalf_GetUnitAtPosition(col, y);
+            if (unit != null)
+            {
+                int newY = y - 1;
+                while (newY >= 0)
+                {
+                    if (BottomHalf_GetUnitAtPosition(col, newY) == null) // 往前一行有空位
+                    {
+                        unit.MoveToPosition(col, newY);
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                    else
+                    {
+                        BottomHalf_CheckFormationForUnit(unit);
                         break; // 如果往前一行没有空位，则再往前也不会有空位了
                     }
                     newY--;

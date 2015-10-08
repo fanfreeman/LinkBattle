@@ -11,7 +11,7 @@ public class Archer : Unit {
         return "Archer";
     }
 
-    public override IEnumerator Attack()
+    protected override IEnumerator Attack()
     {
         StartCoroutine(base.Attack());
 
@@ -19,8 +19,9 @@ public class Archer : Unit {
 
         // 发射projectile
         GameObject arrowObj = Instantiate(projectile, transform.position, Quaternion.identity) as GameObject;
+        if (!isAtBottom) arrowObj.transform.position = buddyTwoInFront.transform.position;
         Projectile arrow = arrowObj.GetComponent<Projectile>();
-        arrow.Init(boardX);
+        arrow.Init(isAtBottom, boardX, currentAttackPower);
         
         yield return new WaitForSeconds(0.5f);
         
