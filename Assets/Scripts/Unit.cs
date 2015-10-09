@@ -5,7 +5,6 @@ using System.Collections.Generic;
 
 public abstract class Unit : MonoBehaviour {
 
-    public Transform damageTransform;
     public GameObject damageDisplayPrefab;
     public float healthMax = 100f;
     public int numTurnsToChargeUp = 1;
@@ -43,28 +42,33 @@ public abstract class Unit : MonoBehaviour {
 
     GameObject unitStatusCanvas;
     UnitStatusController unitStatusController = null;
+    Transform unitFeaturesTransform;
+    Transform damageTransform;
 
     void Awake()
     {
+        unitFeaturesTransform = transform.Find("UnitFeatures");
+        damageTransform = unitFeaturesTransform.Find("DamageTransform");
+
         shaderSetUpScript = GetComponent<ShaderSetUp>();
-        animController = GetComponent<UnitAnimationController>();
+        animController = unitFeaturesTransform.GetComponent<UnitAnimationController>();
         SetHealth(healthMax);
         attackBuddies = new List<Unit>(2);
 
         // 初始化particles
-        Transform particleObject = transform.Find("ParticleExplosion");
+        Transform particleObject = unitFeaturesTransform.Find("ParticleExplosion");
         particleHit = particleObject.GetComponent<ParticleSystem>();
 
-        particleObject = transform.Find("ParticleActivation");
+        particleObject = unitFeaturesTransform.Find("ParticleActivation");
         particleActivation = particleObject.GetComponent<ParticleSystem>();
 
-        particleObject = transform.Find("ParticleBurst");
+        particleObject = unitFeaturesTransform.Find("ParticleBurst");
         particleCountDown = particleObject.GetComponent<ParticleSystem>();
 
-        particleObject = transform.Find("ParticleBoom");
+        particleObject = unitFeaturesTransform.Find("ParticleBoom");
         particleDeath = particleObject.GetComponent<ParticleSystem>();
 
-        unitStatusCanvas = transform.Find("UnitStatusCanvas").gameObject;
+        unitStatusCanvas = unitFeaturesTransform.Find("UnitStatusCanvas").gameObject;
     }
 
     void InitUnitStatusControllerIfNeeded()
@@ -97,14 +101,14 @@ public abstract class Unit : MonoBehaviour {
             BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
             BoardManager.instance.BottomHalf_SetUnitAtPosition(this, newX, newY);
             Vector3 moveToPos = BoardManager.instance.BottomHalf_GetCoordinatesAtPosition(newX, newY);
-            iTween.MoveTo(this.gameObject, moveToPos, 1f);
+            iTween.MoveTo(gameObject, moveToPos, 1f);
         }
         else
         {
             BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
             BoardManager.instance.TopHalf_SetUnitAtPosition(this, newX, newY);
             Vector3 moveToPos = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(newX, newY);
-            iTween.MoveTo(this.gameObject, moveToPos, 1f);
+            iTween.MoveTo(gameObject, moveToPos, 1f);
         }
 
         boardX = newX;
@@ -260,7 +264,7 @@ public abstract class Unit : MonoBehaviour {
         animController.Attack();
         this.Deactivate();
 
-        // 从棋盘上清楚这些单位
+        // 腾出这些单位在棋盘上的位置
         foreach (Unit unit in attackBuddies)
         {
             if (isAtBottom) BoardManager.instance.BottomHalf_SetUnitAtPosition(null, unit.boardX, unit.boardY);
@@ -288,13 +292,20 @@ public abstract class Unit : MonoBehaviour {
         if (healthCurrent <= 0) StartCoroutine(Die(true));
     }
 
-    protected IEnumerator Remove()
+    // 播放动画，然后从棋盘上清除此单位
+    protected IEnumerator RemoveWithAnimation()
     {
         particleHit.gameObject.SetActive(true);
         particleHit.Play();
         yield return new WaitForSeconds(0.3f);
 
         //BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
+        Destroy(gameObject);
+    }
+
+    // 立刻从棋盘上清除此单位
+    protected void RemoveImmediately()
+    {
         Destroy(gameObject);
     }
 
@@ -321,9 +332,7 @@ public abstract class Unit : MonoBehaviour {
     void CreateDamagePopup(float damage)
     {
         GameObject damageGameObject = (GameObject)Instantiate(damageDisplayPrefab, damageTransform.position, Quaternion.identity);
-        //damageGameObject.transform.SetParent(damageTransform);
         damageGameObject.GetComponentInChildren<Text>().text = Mathf.Round(damage).ToString();
-        Destroy(damageGameObject, 1f);
     }
 
     IEnumerator Die(bool isDeathLeader)

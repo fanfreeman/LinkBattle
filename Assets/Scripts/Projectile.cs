@@ -4,7 +4,6 @@ using System.Collections;
 public class Projectile : MonoBehaviour {
     
     public float moveSpeed = 5f;
-    public GameObject projectileSprite;
 
     [HideInInspector]
     public bool belongsToBottomPlayer { get; set; }
@@ -22,7 +21,7 @@ public class Projectile : MonoBehaviour {
     protected static int outOfTopEdgeY = 20;
     protected static int outOfBottomEdgeY = -20;
 
-    void Awake()
+    protected virtual void Awake()
     {
         rb2D = GetComponent<Rigidbody2D>();
         enabled = false;
@@ -37,7 +36,7 @@ public class Projectile : MonoBehaviour {
 
         if(!belongsToBottom)
         {
-            projectileSprite.transform.Rotate(Vector3.forward * 180f);
+            transform.Rotate(Vector3.forward * 180f);
         }
 
         column = col;
@@ -71,7 +70,7 @@ public class Projectile : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Unit targetUnit = other.gameObject.GetComponent<Unit>();
+        Unit targetUnit = other.GetComponent<Unit>();
         if ((belongsToBottomPlayer && !targetUnit.isAtBottom) || (!belongsToBottomPlayer && targetUnit.isAtBottom))
         {
             //Debug.Log("shot " + other.gameObject.name);

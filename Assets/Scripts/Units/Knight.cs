@@ -1,14 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
-using System;
 
-public class Archer : Unit {
-
+public class Knight : Unit
+{
     public GameObject projectilePrefab;
 
     public override string GetTypeString()
     {
-        return "Archer";
+        return "Knight";
     }
 
     protected override IEnumerator Attack()
@@ -18,26 +17,23 @@ public class Archer : Unit {
 
         yield return new WaitForSeconds(1f);
 
-        // 发射projectile
-        LaunchProjectile();
-        
-        yield return new WaitForSeconds(0.5f);
-        
-        // 清理此单位以及其队友
-        foreach (Archer unit in attackBuddies)
-        {
-            StartCoroutine(unit.RemoveWithAnimation());
-        }
-        ResetAttackBuddies();
-        StartCoroutine(RemoveWithAnimation());
+        // 进攻
+        LaunchSelf();
     }
 
-    // 远攻单位释放箭矢
-    void LaunchProjectile()
+    // 近攻单位自行出战
+    void LaunchSelf()
     {
         GameObject projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
         if (!isAtBottom) projectileObj.transform.position = buddyTwoInFront.transform.position;
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         projectile.Init(isAtBottom, boardX, currentAttackPower);
+
+        foreach (Knight unit in attackBuddies)
+        {
+            unit.RemoveImmediately();
+        }
+        ResetAttackBuddies();
+        RemoveImmediately();
     }
 }
