@@ -19,7 +19,7 @@ public class BoardManager : MonoBehaviour {
     public static BoardManager instance = null;
 
     // 兵种
-    public GameObject archer;
+    public GameObject[] units;
 
     // 棋盘每一边的大小
     public int numColumns = 8;
@@ -44,8 +44,8 @@ public class BoardManager : MonoBehaviour {
 
         SetUpGrids();
         InitializeGridCoordinates();
-        LayoutObjectAtRandom(true, archer, 13, 17); // top
-        LayoutObjectAtRandom(false, archer, 13, 17); // bottom
+        LayoutObjectAtRandom(true, units, 13, 17); // top
+        LayoutObjectAtRandom(false, units, 13, 17); // bottom
 
         PrintGrids();
 
@@ -114,7 +114,7 @@ public class BoardManager : MonoBehaviour {
     }
 
     // 随机找空格位放置单位
-    void LayoutObjectAtRandom(bool isTopHalf, GameObject gameObject, int minimum, int maximum) {
+    void LayoutObjectAtRandom(bool isTopHalf, GameObject[] unitPrefabs, int minimum, int maximum) {
         int objectCount = Random.Range(minimum, maximum + 1);
         for (int i = 0; i < objectCount; i++)  {
             int randomIndex;
@@ -122,7 +122,8 @@ public class BoardManager : MonoBehaviour {
             {
                 randomIndex = TopHalf_RandomPosition();
                 Vector3 coordinates = gridCoordinatesTop[randomIndex];
-                GameObject obj = Instantiate(gameObject, coordinates, Quaternion.identity) as GameObject;
+                var randomUnitIndex = Random.Range(0, unitPrefabs.Length);
+                GameObject obj = Instantiate(unitPrefabs[randomUnitIndex], coordinates, Quaternion.identity) as GameObject;
                 Vector2 position = GetPositionGivenArrayIndex(randomIndex);
                 unitGridTop[randomIndex] = obj.GetComponent<Unit>();
                 unitGridTop[randomIndex].SetPositionValues((int)position.x, (int)position.y);
@@ -132,7 +133,8 @@ public class BoardManager : MonoBehaviour {
             {
                 randomIndex = BottomHalf_RandomPosition();
                 Vector3 coordinates = gridCoordinatesBottom[randomIndex];
-                GameObject obj = Instantiate(gameObject, coordinates, Quaternion.identity) as GameObject;
+                var randomUnitIndex = Random.Range(0, unitPrefabs.Length);
+                GameObject obj = Instantiate(unitPrefabs[randomUnitIndex], coordinates, Quaternion.identity) as GameObject;
                 Vector2 position = GetPositionGivenArrayIndex(randomIndex);
                 unitGridBottom[randomIndex] = obj.GetComponent<Unit>();
                 unitGridBottom[randomIndex].SetPositionValues((int)position.x, (int)position.y);

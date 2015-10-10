@@ -39,6 +39,7 @@ public abstract class Unit : MonoBehaviour {
     ParticleSystem particleActivation;
     ParticleSystem particleCountDown;
     ParticleSystem particleDeath;
+    bool enableParticles = true;
 
     GameObject unitStatusCanvas;
     UnitStatusController unitStatusController = null;
@@ -56,18 +57,21 @@ public abstract class Unit : MonoBehaviour {
         attackBuddies = new List<Unit>(2);
 
         // 初始化particles
-        Transform particleObject = unitFeaturesTransform.Find("ParticleExplosion");
-        particleHit = particleObject.GetComponent<ParticleSystem>();
+        if (enableParticles)
+        {
+            Transform particleObject = unitFeaturesTransform.Find("ParticleExplosion");
+            particleHit = particleObject.GetComponent<ParticleSystem>();
 
-        particleObject = unitFeaturesTransform.Find("ParticleActivation");
-        particleActivation = particleObject.GetComponent<ParticleSystem>();
+            particleObject = unitFeaturesTransform.Find("ParticleActivation");
+            particleActivation = particleObject.GetComponent<ParticleSystem>();
 
-        particleObject = unitFeaturesTransform.Find("ParticleBurst");
-        particleCountDown = particleObject.GetComponent<ParticleSystem>();
+            particleObject = unitFeaturesTransform.Find("ParticleBurst");
+            particleCountDown = particleObject.GetComponent<ParticleSystem>();
 
-        particleObject = unitFeaturesTransform.Find("ParticleBoom");
-        particleDeath = particleObject.GetComponent<ParticleSystem>();
-
+            particleObject = unitFeaturesTransform.Find("ParticleBoom");
+            particleDeath = particleObject.GetComponent<ParticleSystem>();
+        }
+        
         unitStatusCanvas = unitFeaturesTransform.Find("UnitStatusCanvas").gameObject;
     }
 
@@ -172,8 +176,11 @@ public abstract class Unit : MonoBehaviour {
         buddyTwoInFront = unitTwoInFront;
 
         // 显示效果
-        particleActivation.gameObject.SetActive(true);
-        particleActivation.Play();
+        if (enableParticles)
+        {
+            particleActivation.gameObject.SetActive(true);
+            particleActivation.Play();
+        }
         shaderSetUpScript.isMouseOverEffectEnabled = false;
 
         // 添加战友
@@ -236,8 +243,11 @@ public abstract class Unit : MonoBehaviour {
     {
         if (!isActivated || !isChargeUpLeader) return false;
 
-        particleCountDown.gameObject.SetActive(true);
-        particleCountDown.Play();
+        if (enableParticles)
+        {
+            particleCountDown.gameObject.SetActive(true);
+            particleCountDown.Play();
+        }
 
         numTurnsToChargeUpLeft--;
         unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
@@ -295,8 +305,11 @@ public abstract class Unit : MonoBehaviour {
     // 播放动画，然后从棋盘上清除此单位
     protected IEnumerator RemoveWithAnimation()
     {
-        particleHit.gameObject.SetActive(true);
-        particleHit.Play();
+        if (enableParticles)
+        {
+            particleHit.gameObject.SetActive(true);
+            particleHit.Play();
+        }
         yield return new WaitForSeconds(0.3f);
 
         //BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
@@ -323,8 +336,13 @@ public abstract class Unit : MonoBehaviour {
         // 显示伤害数字
         CreateDamagePopup(actualDamage);
 
-        particleHit.gameObject.SetActive(true);
-        particleHit.Play();
+        CameraEffects.instance.Shake();
+
+        if (enableParticles)
+        {
+            particleHit.gameObject.SetActive(true);
+            particleHit.Play();
+        }
         SetHealth(healthCurrent - damage);
         return actualDamage;
     }
@@ -345,16 +363,16 @@ public abstract class Unit : MonoBehaviour {
                 StartCoroutine(buddy.Die(false));
             }
 
-            particleDeath.gameObject.SetActive(true);
-            particleDeath.Play();
+            if (enableParticles)
+            {
+                particleDeath.gameObject.SetActive(true);
+                particleDeath.Play();
+            }
         }
 
         if (isAtBottom) BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
         else BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
         
-        particleHit.gameObject.SetActive(true);
-        particleHit.Play();
-        CameraEffects.instance.Shake();
         yield return new WaitForSeconds(0.3f);
         
         Destroy(gameObject);
