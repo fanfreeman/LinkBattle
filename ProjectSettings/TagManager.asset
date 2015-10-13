@@ -42,6 +42,24 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: row0
+    uniqueID: 1336956829
+    locked: 0
+  - name: row1
+    uniqueID: 1673269043
+    locked: 0
+  - name: row2
+    uniqueID: 67659265
+    locked: 0
+  - name: row3
+    uniqueID: 3797687179
+    locked: 0
+  - name: row4
+    uniqueID: 3732040503
+    locked: 0
+  - name: row5
+    uniqueID: 2950998325
+    locked: 0
   - name: hud
     uniqueID: 3914470895
     locked: 0

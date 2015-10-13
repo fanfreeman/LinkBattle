@@ -25,10 +25,10 @@ public class Knight : Unit
     void LaunchSelf()
     {
         GameObject projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
-        if (!isAtBottom) projectileObj.transform.position = buddyTwoInFront.transform.position;
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         projectile.Init(isAtBottom, boardX, currentAttackPower);
 
+        // 立刻清理此单位以及其队友
         foreach (Knight unit in attackBuddies)
         {
             unit.RemoveImmediately();

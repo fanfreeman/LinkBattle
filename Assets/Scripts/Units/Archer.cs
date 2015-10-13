@@ -36,7 +36,7 @@ public class Archer : Unit {
     void LaunchProjectile()
     {
         GameObject projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
-        if (!isAtBottom) projectileObj.transform.position = buddyTwoInFront.transform.position;
+        if (!isAtBottom) projectileObj.transform.position = buddyTwoInFront.transform.position; // 如属于上半场，释放地点往尾部挪两个格位，因为attack leader在队首
         Projectile projectile = projectileObj.GetComponent<Projectile>();
         projectile.Init(isAtBottom, boardX, currentAttackPower);
     }

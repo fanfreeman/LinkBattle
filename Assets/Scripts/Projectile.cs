@@ -27,17 +27,12 @@ public class Projectile : MonoBehaviour {
         enabled = false;
     }
 
-    public void Init(bool belongsToBottom, int col, float totalAttackPower)
+    public virtual void Init(bool belongsToBottom, int col, float totalAttackPower)
     {
         totalDamage = totalAttackPower;
         if (totalDamage > 0 && perUnitDamage > 0) throw new System.Exception("Total Damage and Per Unit Damage cannot both be set");
 
         belongsToBottomPlayer = belongsToBottom;
-
-        if(!belongsToBottom)
-        {
-            transform.Rotate(Vector3.forward * 180f);
-        }
 
         column = col;
         moveTarget = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(col, 0);

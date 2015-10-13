@@ -116,7 +116,7 @@ public class BoardManager : MonoBehaviour {
     // 随机找空格位放置单位
     void LayoutObjectAtRandom(bool isTopHalf, GameObject[] unitPrefabs, int minimum, int maximum) {
         int objectCount = Random.Range(minimum, maximum + 1);
-        for (int i = 0; i < objectCount; i++)  {
+        for (int i = 0; i < objectCount; i++)  { // loop through creation count
             int randomIndex;
             if (isTopHalf)
             {
@@ -128,6 +128,7 @@ public class BoardManager : MonoBehaviour {
                 unitGridTop[randomIndex] = obj.GetComponent<Unit>();
                 unitGridTop[randomIndex].SetPositionValues((int)position.x, (int)position.y);
                 unitGridTop[randomIndex].SetIsAtBottom(false);
+                unitGridTop[randomIndex].SetSortingLayer();
             }
             else
             {
@@ -139,8 +140,8 @@ public class BoardManager : MonoBehaviour {
                 unitGridBottom[randomIndex] = obj.GetComponent<Unit>();
                 unitGridBottom[randomIndex].SetPositionValues((int)position.x, (int)position.y);
                 unitGridBottom[randomIndex].SetIsAtBottom(true);
+                unitGridBottom[randomIndex].SetSortingLayer();
             }
-            
         }
     }
 
@@ -294,6 +295,10 @@ public class BoardManager : MonoBehaviour {
         Unit unitTwoInFront = TopHalf_GetUnitTwoInFrontOfUnit(unit);
         if (unitInFront != null && unitTwoInFront != null)
         {
+            // 确保三个单位为同一兵种
+            if (unit.GetTypeString() != unitInFront.GetTypeString()) return;
+            if (unit.GetTypeString() != unitTwoInFront.GetTypeString()) return;
+
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
                 unitTwoInFront.ActivateChargeUp(unitInFront, unit, true);
@@ -309,9 +314,13 @@ public class BoardManager : MonoBehaviour {
         Unit unitTwoInFront = BottomHalf_GetUnitTwoInFrontOfUnit(unit);
         if (unitInFront != null && unitTwoInFront != null)
         {
-            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated) // 组成三连formation
+            // 确保三个单位为同一兵种
+            if (unit.GetTypeString() != unitInFront.GetTypeString()) return;
+            if (unit.GetTypeString() != unitTwoInFront.GetTypeString()) return;
+
+            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
-                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true);
+                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
             }
         }
     }
@@ -424,13 +433,19 @@ public class BoardManager : MonoBehaviour {
                 Unit unit = TopHalf_GetUnitAtPosition(x, y);
                 if (unit != null)
                 {
-                    if (unit.ChargeUpTickDown())
+                    if (unit.ChargeUpTickDown() == 0)
                     {
-                        yield return new WaitForSeconds(0.5f);
+                        yield return new WaitForSeconds(1f); // 攻击后等待久一点
+                    }
+                    else if (unit.ChargeUpTickDown() > 0)
+                    {
+                        yield return new WaitForSeconds(0.3f); // 只是蓄力的话等待短一点
+                    }
+                    else
+                    {
+                        yield return null; // 不蓄力或攻击的话不等待
                     }
                 }
-
-                yield return null;
             }
         }
 
@@ -448,13 +463,19 @@ public class BoardManager : MonoBehaviour {
                 Unit unit = BottomHalf_GetUnitAtPosition(x, y);
                 if (unit != null)
                 {
-                    if (unit.ChargeUpTickDown())
+                    if (unit.ChargeUpTickDown() == 0)
                     {
-                        yield return new WaitForSeconds(0.5f);
+                        yield return new WaitForSeconds(1f); // 攻击后等待久一点
+                    }
+                    else if (unit.ChargeUpTickDown() > 0)
+                    {
+                        yield return new WaitForSeconds(0.3f); // 只是蓄力的话等待短一点
+                    }
+                    else
+                    {
+                        yield return null; // 不蓄力或攻击的话不等待
                     }
                 }
-
-                yield return null;
             }
         }
 

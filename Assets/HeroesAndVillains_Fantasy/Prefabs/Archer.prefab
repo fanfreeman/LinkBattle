@@ -1191,7 +1191,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageDisplayPrefab: {fileID: 132768, guid: 4286e743b0883c846aab4d91e0ef9dfa, type: 2}
   healthMax: 100
-  numTurnsToChargeUp: 2
+  numTurnsToChargeUp: 1
   attackPower: 250
   boardX: 0
   boardY: 0
@@ -12560,7 +12560,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 0}
       propertyPath: numTurnsToChargeUp
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 0}
       propertyPath: attackPower

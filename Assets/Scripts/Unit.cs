@@ -113,10 +113,34 @@ public abstract class Unit : MonoBehaviour {
             BoardManager.instance.TopHalf_SetUnitAtPosition(this, newX, newY);
             Vector3 moveToPos = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(newX, newY);
             iTween.MoveTo(gameObject, moveToPos, 1f);
+            
         }
 
         boardX = newX;
         boardY = newY;
+        
+        SetSortingLayer();
+    }
+
+    // 将此单位放在其row所对应的sorting layer
+    public void SetSortingLayer()
+    {
+        if (isAtBottom)
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+            {
+                renderer.sortingLayerName = "row" + boardY.ToString();
+            }
+        }
+        else
+        {
+            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            foreach (Renderer renderer in renderers)
+            {
+                renderer.sortingLayerName = "row" + (BoardManager.instance.numRowsPerSide - boardY - 1).ToString();
+            }
+        }
     }
 
     // 移动column高亮光柱
@@ -239,9 +263,9 @@ public abstract class Unit : MonoBehaviour {
     }
 
     // 蓄力tick down
-    public bool ChargeUpTickDown()
+    public int ChargeUpTickDown()
     {
-        if (!isActivated || !isChargeUpLeader) return false;
+        if (!isActivated || !isChargeUpLeader) return -1;
 
         if (enableParticles)
         {
@@ -260,7 +284,7 @@ public abstract class Unit : MonoBehaviour {
 
         if (numTurnsToChargeUpLeft == 0) StartCoroutine(Attack());
 
-        return true;
+        return numTurnsToChargeUpLeft;
     }
 
     protected virtual IEnumerator Attack()
