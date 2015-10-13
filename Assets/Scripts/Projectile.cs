@@ -12,7 +12,8 @@ public class Projectile : MonoBehaviour {
     public int column;
 
     // 以下两种伤害模式只能二选一
-    float totalDamage = 0f; // 抛射物的总伤害值
+    [HideInInspector]
+    public float totalDamage = 0f; // 抛射物的总伤害值
     float perUnitDamage = 0f; // 抛射物对此列每一单位的伤害值
 
     Rigidbody2D rb2D;
@@ -71,6 +72,20 @@ public class Projectile : MonoBehaviour {
     void OnTriggerEnter2D(Collider2D other)
     {
         Unit targetUnit = other.GetComponent<Unit>();
+        //如果撞线的话
+        LineLoader hittedLine = other.GetComponent<LineLoader>();
+        if(targetUnit == null && hittedLine != null){
+            int damage = Mathf.CeilToInt(this.totalDamage);
+
+            if(other.tag == "EnemyLine"){
+                BattleLoader.instance.changeEnemyHp(-damage);
+            }else if(other.tag == "PlayerLine"){
+                BattleLoader.instance.changePlayerHp(-damage);
+            }
+            hittedLine.playHitParticle(transform.position.x);
+
+            return;
+        }
         if ((belongsToBottomPlayer && !targetUnit.isAtBottom) || (!belongsToBottomPlayer && targetUnit.isAtBottom))
         {
             //Debug.Log("shot " + other.gameObject.name);
