@@ -13,7 +13,7 @@ public class Projectile : MonoBehaviour {
 
     // 以下两种伤害模式只能二选一
     [HideInInspector]
-    public float totalDamage = 0f; // 抛射物的总伤害值
+    public float remainingDamage = 0f; // 抛射物的总伤害值
     float perUnitDamage = 0f; // 抛射物对此列每一单位的伤害值
 
     Rigidbody2D rb2D;
@@ -30,8 +30,8 @@ public class Projectile : MonoBehaviour {
 
     public virtual void Init(bool belongsToBottom, int col, float totalAttackPower)
     {
-        totalDamage = totalAttackPower;
-        if (totalDamage > 0 && perUnitDamage > 0) throw new System.Exception("Total Damage and Per Unit Damage cannot both be set");
+        remainingDamage = totalAttackPower;
+        if (remainingDamage > 0 && perUnitDamage > 0) throw new System.Exception("Total Damage and Per Unit Damage cannot both be set");
 
         belongsToBottomPlayer = belongsToBottom;
 
@@ -67,25 +67,27 @@ public class Projectile : MonoBehaviour {
     void OnTriggerEnter2D(Collider2D other)
     {
         Unit targetUnit = other.GetComponent<Unit>();
-        //如果撞线的话
-        LineLoader hittedLine = other.GetComponent<LineLoader>();
-        if(targetUnit == null && hittedLine != null){
-            int damage = Mathf.CeilToInt(this.totalDamage);
 
-            if(other.tag == "EnemyLine"){
+        // 检测是否撞线
+        if (targetUnit == null) {
+            int damage = Mathf.CeilToInt(remainingDamage);
+            if (other.tag == "EnemyLine") {
                 BattleLoader.instance.ChangeEnemyHp(-damage);
-            }else if(other.tag == "PlayerLine"){
+            } else if (other.tag == "PlayerLine") {
                 BattleLoader.instance.ChangePlayerHp(-damage);
             }
-            hittedLine.playHitParticle(transform.position.x);
 
+            CameraEffects.instance.CreateDamagePopup(damage, transform.position);
+            CameraEffects.instance.Shake();
+            DestroySelf();
             return;
         }
+
         if ((belongsToBottomPlayer && !targetUnit.isAtBottom) || (!belongsToBottomPlayer && targetUnit.isAtBottom))
         {
             //Debug.Log("shot " + other.gameObject.name);
-            this.totalDamage -= (targetUnit.TakeDamage(totalDamage));
-            if (this.totalDamage <= 0) // 此projectile耗尽后销毁此projectile
+            remainingDamage -= (targetUnit.TakeDamage(remainingDamage));
+            if (remainingDamage <= 0) // 此projectile耗尽后销毁此projectile
             {
                 Debug.Log("consolidate: projectile used up");
                 DestroySelf();

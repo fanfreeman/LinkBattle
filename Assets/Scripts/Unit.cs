@@ -4,8 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public abstract class Unit : MonoBehaviour {
-
-    public GameObject damageDisplayPrefab;
+    
     public float healthMax = 100f;
     public int numTurnsToChargeUp = 1;
     int numTurnsToChargeUpLeft;
@@ -358,8 +357,7 @@ public abstract class Unit : MonoBehaviour {
         else actualDamage = healthCurrent;
 
         // 显示伤害数字
-        CreateDamagePopup(actualDamage);
-
+        CameraEffects.instance.CreateDamagePopup(actualDamage, damageTransform.position);
         CameraEffects.instance.Shake();
 
         if (enableParticles)
@@ -369,12 +367,6 @@ public abstract class Unit : MonoBehaviour {
         }
         SetHealth(healthCurrent - damage);
         return actualDamage;
-    }
-
-    void CreateDamagePopup(float damage)
-    {
-        GameObject damageGameObject = (GameObject)Instantiate(damageDisplayPrefab, damageTransform.position, Quaternion.identity);
-        damageGameObject.GetComponentInChildren<Text>().text = Mathf.Round(damage).ToString();
     }
 
     IEnumerator Die(bool isDeathLeader)

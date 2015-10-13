@@ -1,11 +1,14 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class CameraEffects : MonoBehaviour {
 
     public static CameraEffects instance = null;
+    public GameObject damageDisplayPrefab; // 伤害数字
 
-    public Transform camTransform;
+    // camera的transform
+    Transform camTransform;
 
     // 持续时间
     float duration;
@@ -58,5 +61,11 @@ public class CameraEffects : MonoBehaviour {
         dampening = dampeningVal;
 
         enabled = true;
+    }
+
+    public void CreateDamagePopup(float damage, Vector3 position)
+    {
+        GameObject damageGameObject = (GameObject)Instantiate(damageDisplayPrefab, position, Quaternion.identity);
+        damageGameObject.GetComponentInChildren<Text>().text = Mathf.Round(damage).ToString();
     }
 }
