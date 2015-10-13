@@ -6,8 +6,7 @@ public class BattleLoader : MonoBehaviour {
 
     public int enemyHP = 1000;
     public int playerHP = 1000;
-
-
+    
     public GameObject enemyHpHub;
     public GameObject playerHpHub;
 
@@ -16,29 +15,24 @@ public class BattleLoader : MonoBehaviour {
 
 	// Use this for initialization
 	public void SetUpBattleLoader () {
-        if (instance == null){
+        if (instance == null) {
             this.enemyHpHubController = enemyHpHub.GetComponent<StatusBarController>();
             this.playerHpHubController = playerHpHub.GetComponent<StatusBarController>();
-            this.playerHpHubController.setStatus(playerHP,playerHP);
-            this.enemyHpHubController.setStatus(enemyHP,enemyHP);
+            this.playerHpHubController.InitStatus(playerHP, playerHP);
+            this.enemyHpHubController.InitStatus(enemyHP, enemyHP);
             instance = this;
         }
         else if (instance != this)
             Destroy(gameObject);
     }
 
-    public void changeEnemyHp(int delta){
+    public void ChangeEnemyHp(int delta) {
         enemyHP += delta;
-        enemyHpHubController.changeHealth(delta);
-    }
-    public void changePlayerHp(int delta){
-        playerHP += delta;
-        playerHpHubController.changeHealth(delta);
+        enemyHpHubController.ChangeHealth(delta);
     }
 
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    public void ChangePlayerHp(int delta) {
+        playerHP += delta;
+        playerHpHubController.ChangeHealth(delta);
+    }
 }

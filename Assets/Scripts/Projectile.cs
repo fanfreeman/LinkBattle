@@ -78,9 +78,9 @@ public class Projectile : MonoBehaviour {
             int damage = Mathf.CeilToInt(this.totalDamage);
 
             if(other.tag == "EnemyLine"){
-                BattleLoader.instance.changeEnemyHp(-damage);
+                BattleLoader.instance.ChangeEnemyHp(-damage);
             }else if(other.tag == "PlayerLine"){
-                BattleLoader.instance.changePlayerHp(-damage);
+                BattleLoader.instance.ChangePlayerHp(-damage);
             }
             hittedLine.playHitParticle(transform.position.x);
 
