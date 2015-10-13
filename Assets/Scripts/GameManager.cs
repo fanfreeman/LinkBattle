@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour {
     public GameObject selectorBottom;
 
     [HideInInspector] public BoardManager boardScript;
+    [HideInInspector] public BattleLoader battleLoader;
     [HideInInspector] public bool playersTurn = false;
     [HideInInspector] public GameObject columnHighlight;
     [HideInInspector] public GameObject hudCanvas;
@@ -38,12 +39,14 @@ public class GameManager : MonoBehaviour {
         turnMessageController = hudCanvas.GetComponentInChildren<TurnMessageController>();
 
         boardScript = GetComponent<BoardManager>();
+        battleLoader = GetComponent<BattleLoader>();
         InitGame();
     }
 
     void InitGame()
     {
         boardScript.SetupScene();
+        battleLoader.SetUpBattleLoader();
         CreateColumnHighlight();
     }
 
