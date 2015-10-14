@@ -79,7 +79,12 @@ public abstract class Unit : MonoBehaviour {
         if(isChargeUpLeader){
             healthMax /= 3;
         }
+
         numTurnsToChargeUpLeft = 0;
+        if(unitStatusController!=null){
+            unitStatusController = null;
+            unitStatusCanvas.SetActive(false);
+        }
         SetHealth(healthMax);
         particleActivation.gameObject.SetActive(false);
         particleCountDown.gameObject.SetActive(false);
@@ -88,6 +93,8 @@ public abstract class Unit : MonoBehaviour {
         unitStatusCanvas.SetActive(false);
         ResetAttackBuddies();
         isChargeUpLeader = false;
+
+
     }
 
     void InitUnitStatusControllerIfNeeded()

@@ -58,7 +58,7 @@ public class BattleLoader : MonoBehaviour {
 
     public void AddToPlayerUsedAttackerQueue(Unit attacker){
         attacker.ResetUnitStatusValue();
-        attacker.transform.position = new Vector3(0,0,-11);
+        putAttackerOutOfStage(attacker);
         playerUsedAttackerQueue.Add(attacker);
         playerNumberOfReserveUnits++;
         playerButtonGiveMeAttacker.SetNumberOfReserveUnits(playerNumberOfReserveUnits);
@@ -67,7 +67,7 @@ public class BattleLoader : MonoBehaviour {
     public void AddToPlayerUsedAttackerQueue(List<Unit> attackers){
         foreach (Unit t in attackers) {
             t.ResetUnitStatusValue();
-            t.transform.position = new Vector3(0,0,-11);
+            putAttackerOutOfStage(t);
             playerUsedAttackerQueue.Add(t);
             playerNumberOfReserveUnits++;
             playerButtonGiveMeAttacker.SetNumberOfReserveUnits(playerNumberOfReserveUnits);
@@ -76,7 +76,7 @@ public class BattleLoader : MonoBehaviour {
 
     public void AddToEnemyUsedAttackerQueue(Unit attacker){
         attacker.ResetUnitStatusValue();
-        attacker.transform.position = new Vector3(0,0,-11);
+        putAttackerOutOfStage(attacker, false);
         enemyUsedAttackerQueue.Add(attacker);
         enemyNumberOfReserveUnits++;
         enemyButtonGiveMeAttacker.SetNumberOfReserveUnits(enemyNumberOfReserveUnits);
@@ -85,11 +85,17 @@ public class BattleLoader : MonoBehaviour {
     public void AddToEnemyUsedAttackerQueue(List<Unit> attackers){
         foreach (Unit t in attackers) {
             t.ResetUnitStatusValue();
-            t.transform.position = new Vector3(0,0,-11);
+            putAttackerOutOfStage(t, false);
             enemyUsedAttackerQueue.Add(t);
             enemyNumberOfReserveUnits++;
             enemyButtonGiveMeAttacker.SetNumberOfReserveUnits(enemyNumberOfReserveUnits);
         }
+    }
+
+    private void putAttackerOutOfStage(Unit attacker, bool isplayer = true){
+        Vector3 pos = attacker.transform.position;
+        pos.y = isplayer?-13f:13f;
+        attacker.transform.position = pos;
     }
 
     public void ChangeEnemyHp(int delta) {
