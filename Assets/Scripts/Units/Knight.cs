@@ -26,14 +26,16 @@ public class Knight : Unit
     {
         GameObject projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
         Projectile projectile = projectileObj.GetComponent<Projectile>();
-        projectile.Init(isAtBottom, boardX, currentAttackPower);
+
+        //给三人组传过去日后再用
+        projectile.Init(isAtBottom, boardX, currentAttackPower, attackBuddies, this);
 
         // 立刻清理此单位以及其队友
-        foreach (Knight unit in attackBuddies)
-        {
-            unit.RemoveImmediately();
-        }
-        ResetAttackBuddies();
-        RemoveImmediately();
+//        foreach (Knight unit in attackBuddies)
+//        {
+//            unit.RemoveImmediately();
+//        }
+//        ResetAttackBuddies();
+//        RemoveImmediately();
     }
 }

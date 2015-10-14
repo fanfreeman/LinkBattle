@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class Projectile : MonoBehaviour {
     
@@ -22,14 +23,23 @@ public class Projectile : MonoBehaviour {
     protected static int outOfTopEdgeY = 20;
     protected static int outOfBottomEdgeY = -20;
 
+    private List<Unit> attackBuddiesThreeInOne;
+
     protected virtual void Awake()
     {
         rb2D = GetComponent<Rigidbody2D>();
         enabled = false;
     }
 
-    public virtual void Init(bool belongsToBottom, int col, float totalAttackPower)
+    public virtual void Init(bool belongsToBottom, int col, float totalAttackPower, List<Unit> attackBuddies, Unit leader)
     {
+
+        attackBuddiesThreeInOne = new List<Unit>(3);
+        attackBuddiesThreeInOne.Add(leader);
+        attackBuddiesThreeInOne.Add(attackBuddies[0]);
+        attackBuddiesThreeInOne.Add(attackBuddies[1]);
+        pushToReuseQueue(belongsToBottom);
+
         remainingDamage = totalAttackPower;
         if (remainingDamage > 0 && perUnitDamage > 0) throw new System.Exception("Total Damage and Per Unit Damage cannot both be set");
 
@@ -55,7 +65,7 @@ public class Projectile : MonoBehaviour {
         }
     }
 
-    void DestroySelf()
+    protected void DestroySelf()
     {
         // projectile耗尽时，consolidate其所在的敌方column
         if (belongsToBottomPlayer) BoardManager.instance.TopHalf_DoConsolidateColumn(column);
@@ -64,18 +74,29 @@ public class Projectile : MonoBehaviour {
         Destroy(gameObject);
     }
 
+    private void pushToReuseQueue(bool isPlayer){
+        if(isPlayer){
+            BattleLoader.instance.AddToPlayerUsedAttackerQueue(attackBuddiesThreeInOne);
+        }else{
+            BattleLoader.instance.AddToEnemyUsedAttackerQueue(attackBuddiesThreeInOne);
+        }
+    }
+
+
+
     void OnTriggerEnter2D(Collider2D other)
     {
         Unit targetUnit = other.GetComponent<Unit>();
-
-        // 检测是否撞线
-        if (targetUnit == null) {
+        //检测是否撞线
+        LineController hittedLine = other.GetComponent<LineController>();
+        if(targetUnit == null && hittedLine != null){
             int damage = Mathf.CeilToInt(remainingDamage);
             if (other.tag == "EnemyLine") {
                 BattleLoader.instance.ChangeEnemyHp(-damage);
             } else if (other.tag == "PlayerLine") {
                 BattleLoader.instance.ChangePlayerHp(-damage);
             }
+            hittedLine.playHitParticle(transform.position.x);
 
             CameraEffects.instance.CreateDamagePopup(damage, transform.position);
             CameraEffects.instance.Shake();
@@ -90,6 +111,7 @@ public class Projectile : MonoBehaviour {
             if (remainingDamage <= 0) // 此projectile耗尽后销毁此projectile
             {
                 Debug.Log("consolidate: projectile used up");
+
                 DestroySelf();
             }
         }

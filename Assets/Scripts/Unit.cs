@@ -74,6 +74,22 @@ public abstract class Unit : MonoBehaviour {
         unitStatusCanvas = unitFeaturesTransform.Find("UnitStatusCanvas").gameObject;
     }
 
+    //复用重置属性
+    public void ResetUnitStatusValue(){
+        if(isChargeUpLeader){
+            healthMax /= 3;
+        }
+        numTurnsToChargeUpLeft = 0;
+        SetHealth(healthMax);
+        particleActivation.gameObject.SetActive(false);
+        particleCountDown.gameObject.SetActive(false);
+        particleHit.gameObject.SetActive(false);
+        particleDeath.gameObject.SetActive(false);
+        unitStatusCanvas.SetActive(false);
+        ResetAttackBuddies();
+        isChargeUpLeader = false;
+    }
+
     void InitUnitStatusControllerIfNeeded()
     {
         if (unitStatusController == null)
@@ -323,6 +339,7 @@ public abstract class Unit : MonoBehaviour {
         }
 
         if (healthCurrent <= 0) StartCoroutine(Die(true));
+
     }
 
     // 播放动画，然后从棋盘上清除此单位
@@ -336,7 +353,12 @@ public abstract class Unit : MonoBehaviour {
         yield return new WaitForSeconds(0.3f);
 
         //BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
-        Destroy(gameObject);
+//        if(isAtBottom)
+//            BattleLoader.instance.AddToPlayerUsedAttackerQueue(this);
+//        else
+//            BattleLoader.instance.AddToEnemyUsedAttackerQueue(this);
+
+        //Destroy(gameObject);
     }
 
     // 立刻从棋盘上清除此单位
@@ -390,7 +412,11 @@ public abstract class Unit : MonoBehaviour {
         else BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
         
         yield return new WaitForSeconds(0.3f);
-        
-        Destroy(gameObject);
+        if(isAtBottom)
+            BattleLoader.instance.AddToPlayerUsedAttackerQueue(this);
+        else
+            BattleLoader.instance.AddToEnemyUsedAttackerQueue(this);
+
+        //Destroy(gameObject);
     }
 }

@@ -16,7 +16,7 @@ public class StatusBarController : MonoBehaviour {
     //0-1
     private float shoudBePercentage;
     private Vector3 initPosDecoraterVec3;
-    
+
     void Start() {
         shoudBePercentage = (float)currentHealth / (float)maxHealth;
         initPosDecoraterVec3 = fillerDecorater.position;
@@ -37,7 +37,7 @@ public class StatusBarController : MonoBehaviour {
         SetHPText();
 
     }
-    
+
     void OnGUI () {
         SetFiller();
         Vector3 posDecoraterVec3 = fillerDecorater.position;

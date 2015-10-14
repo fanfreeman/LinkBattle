@@ -9,6 +9,8 @@ public class GameManager : MonoBehaviour {
     public GameObject columnHighlightPrefab;
     public GameObject selectorTop;
     public GameObject selectorBottom;
+    public Button giveAttackerPlayer;
+    public Button giveAttackerEnemy;
 
     [HideInInspector] public BoardManager boardScript;
     [HideInInspector] public BattleLoader battleLoader;
@@ -88,6 +90,10 @@ public class GameManager : MonoBehaviour {
     public void GoToNextTurn()
     {
         playersTurn = !playersTurn;
+
+        giveAttackerPlayer.interactable = playersTurn;
+        giveAttackerEnemy.interactable = !playersTurn;
+
         movesLeftThisTurn = 3;
         SetNumberOfMovesText();
         RevokeControl();

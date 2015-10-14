@@ -29,8 +29,8 @@ public class BoardManager : MonoBehaviour {
     public Unit unitBeingPickedUp = null;
 
     // 空档格位的xy坐标列表
-    private List<Vector3> gridCoordinatesTop = new List<Vector3>();
-    private List<Vector3> gridCoordinatesBottom = new List<Vector3>();
+    [HideInInspector]public List<Vector3> gridCoordinatesTop = new List<Vector3>();
+    [HideInInspector]public List<Vector3> gridCoordinatesBottom = new List<Vector3>();
 
     // 存储所有单位的数组matrix
     private List<Unit> unitGridTop;
@@ -113,8 +113,31 @@ public class BoardManager : MonoBehaviour {
         return randomIndex;
     }
 
+    public void FillUpAttacker(List<Unit> usedAttacker, bool isPlayer){
+        int objectCount = usedAttacker.Count;
+        for (int i = 0; i < objectCount; i++)  { // loop through creation count
+            if (!isPlayer)
+            {
+                Unit attacker = usedAttacker[i];
+                while (!TopHalf_LetUnitEnterColumnFromTail(attacker, UnityEngine.Random.Range(0,numColumns))){
+                    //do nothing
+                }
+            }
+            else
+            {
+                Unit attacker = usedAttacker[i];
+                while (!BottomHalf_LetUnitEnterColumnFromTail(attacker, UnityEngine.Random.Range(0,numColumns))){
+                    //do nothing
+                }
+            }
+        }
+
+
+    }
+
+
     // 随机找空格位放置单位
-    void LayoutObjectAtRandom(bool isTopHalf, GameObject[] unitPrefabs, int minimum, int maximum) {
+    public void LayoutObjectAtRandom(bool isTopHalf, GameObject[] unitPrefabs, int minimum, int maximum) {
         int objectCount = Random.Range(minimum, maximum + 1);
         for (int i = 0; i < objectCount; i++)  { // loop through creation count
             int randomIndex;
