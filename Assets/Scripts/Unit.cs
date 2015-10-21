@@ -23,6 +23,7 @@ public abstract class Unit : MonoBehaviour {
     protected static int outOfBottomEdgeY = -12;
 
     public abstract string GetTypeString();
+    public abstract BoardManager.UnitTypes GetUnitType();
 
     ShaderSetUp shaderSetUpScript;
     UnitAnimationController animController;
@@ -167,28 +168,50 @@ public abstract class Unit : MonoBehaviour {
                     BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
 
                     GameManager.instance.SetColumnHighlightEnabled(true, moveToPos.x);
+
+                    // send network message
+                    BoardManager.instance.SendPickUpUnit(boardX, boardY);
                 }
             }
             else Debug.Log("It's the top player's turn");
         }
-        else
-        {
-            if (!GameManager.instance.playersTurn)
-            {
-                // 如此单位在column底部，将其移出该column（捡起）
-                if (BoardManager.instance.unitBeingPickedUp == null && !isActivated && BoardManager.instance.TopHalf_CheckIfUnitIsAtTail(this))
-                {
-                    Vector3 moveToPos = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(boardX, boardY);
-                    moveToPos.y = outOfTopEdgeY;
-                    iTween.MoveTo(gameObject, moveToPos, 1f);
-                    BoardManager.instance.unitBeingPickedUp = this;
-                    BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
+        //else
+        //{
+        //    if (!GameManager.instance.playersTurn)
+        //    {
+        //        // 如此单位在column底部，将其移出该column（捡起）
+        //        if (BoardManager.instance.unitBeingPickedUp == null && !isActivated && BoardManager.instance.TopHalf_CheckIfUnitIsAtTail(this))
+        //        {
+        //            Vector3 moveToPos = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(boardX, boardY);
+        //            moveToPos.y = outOfTopEdgeY;
+        //            iTween.MoveTo(gameObject, moveToPos, 1f);
+        //            BoardManager.instance.unitBeingPickedUp = this;
+        //            BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
 
-                    GameManager.instance.SetColumnHighlightEnabled(true, moveToPos.x);
-                }
+        //            GameManager.instance.SetColumnHighlightEnabled(true, moveToPos.x);
+        //        }
+        //    }
+        //    else Debug.Log("It's the bottom player's turn");
+        //}
+    }
+
+    public void NetworkPickUpEnemyUnit()
+    {
+        if (!GameManager.instance.playersTurn)
+        {
+            // 如此单位在column底部，将其移出该column（捡起）
+            if (BoardManager.instance.unitBeingPickedUp == null && !isActivated && BoardManager.instance.TopHalf_CheckIfUnitIsAtTail(this))
+            {
+                Vector3 moveToPos = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(boardX, boardY);
+                moveToPos.y = outOfTopEdgeY;
+                iTween.MoveTo(gameObject, moveToPos, 1f);
+                BoardManager.instance.unitBeingPickedUp = this;
+                BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
+
+                GameManager.instance.SetColumnHighlightEnabled(true, moveToPos.x);
             }
-            else Debug.Log("It's the bottom player's turn");
         }
+        else Debug.Log("It's the bottom player's turn");
     }
 
     // 此单位开始蓄力

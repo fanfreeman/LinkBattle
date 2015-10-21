@@ -1244,6 +1244,10 @@ Prefab:
       propertyPath: m_LocalScale.y
       value: .699999988
       objectReference: {fileID: 0}
+    - target: {fileID: 11455844, guid: bcbd5ad96063ef1418d7f3366024e3b8, type: 2}
+      propertyPath: currentHealth
+      value: 100
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: bcbd5ad96063ef1418d7f3366024e3b8, type: 2}
   m_IsPrefabParent: 0
@@ -1484,6 +1488,10 @@ Prefab:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 11455844, guid: bcbd5ad96063ef1418d7f3366024e3b8, type: 2}
+      propertyPath: currentHealth
+      value: 100
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: bcbd5ad96063ef1418d7f3366024e3b8, type: 2}
   m_IsPrefabParent: 0
@@ -1508,6 +1516,7 @@ GameObject:
   - 114: {fileID: 1213210210}
   - 114: {fileID: 1213210211}
   - 114: {fileID: 1213210212}
+  - 114: {fileID: 1213210213}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1559,7 +1568,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0baaedff585088e40936ccf435c97823, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  units:
+  unitPrefabs:
   - {fileID: 100038, guid: 906d3a7b7b8ac4639994a032068c699a, type: 2}
   - {fileID: 100020, guid: 364ae83ad7b1c4fce8735ead4a02c20e, type: 2}
   numColumns: 8
@@ -1592,6 +1601,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   damageDisplayPrefab: {fileID: 132768, guid: 4286e743b0883c846aab4d91e0ef9dfa, type: 2}
+--- !u!114 &1213210213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1213210207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa584fbee541324448dd18d8409c7a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ownerId: 0
+  group: 0
+  prefixBackup: -1
+  observed: {fileID: 0}
+  synchronization: 0
+  onSerializeTransformOption: 3
+  onSerializeRigidBodyOption: 2
+  ownershipTransfer: 0
+  ObservedComponents:
+  - {fileID: 0}
+  ObservedComponentsFoldoutOpen: 1
+  viewIdField: 1
+  instantiationId: 1
+  isRuntimeInstantiated: 0
 --- !u!1 &1233802218
 GameObject:
   m_ObjectHideFlags: 0

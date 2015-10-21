@@ -1,9 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 
 public class Knight : Unit
 {
     public GameObject projectilePrefab;
+
+    public override BoardManager.UnitTypes GetUnitType()
+    {
+        return BoardManager.UnitTypes.Knight;
+    }
 
     public override string GetTypeString()
     {
