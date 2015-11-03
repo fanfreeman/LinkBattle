@@ -335,7 +335,7 @@ public class BoardManager : Photon.MonoBehaviour {
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
-                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
+                unitTwoInFront.ActivateChargeUp(unitInFront, unit, true); // 组成三连formation
             }
         }
     }

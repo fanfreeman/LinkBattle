@@ -332,17 +332,33 @@ public abstract class Unit : MonoBehaviour {
         yield return null;
     }
 
+    // 给单位赋予新的health值
     void SetHealth(float val)
     {
         if (val < 0) val = 0;
         healthCurrent = val;
         float scaleFactor = healthCurrent / healthMax;
         if (unitStatusController != null) unitStatusController.SetHealthScale(scaleFactor);
-
-        if (isActivated && isChargeUpLeader)
+        
+        if (isActivated)
         {
-            currentAttackPower = currentMaxAttackPower * scaleFactor;
-            unitStatusController.SetAttackPower(currentAttackPower);
+            if (isChargeUpLeader)
+            {
+                currentAttackPower = currentMaxAttackPower * scaleFactor;
+                unitStatusController.SetAttackPower(currentAttackPower);
+            }
+            //else // 如果此单位不是charge up leader，则需先找到其leader，并修改leader的attack power
+            //{
+            //    foreach(Unit buddy in attackBuddies)
+            //    {
+            //        if (buddy.isChargeUpLeader)
+            //        {
+            //            buddy.currentAttackPower = buddy.currentMaxAttackPower * scaleFactor;
+            //            buddy.unitStatusController.SetAttackPower(buddy.currentAttackPower);
+            //            break;
+            //        }
+            //    }
+            //}
         }
 
         if (healthCurrent <= 0) StartCoroutine(Die(true));

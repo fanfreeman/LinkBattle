@@ -63,7 +63,7 @@ public class StatusBarController : MonoBehaviour {
 
     private void SetFiller() {
         if (shoudBePercentage == filler.fillAmount) return;
-        Debug.Log(shoudBePercentage);
+        //Debug.Log(shoudBePercentage);
         if (Mathf.Abs(shoudBePercentage - filler.fillAmount) > changeSpeed) {
             if (shoudBePercentage > filler.fillAmount) {
                 filler.fillAmount += changeSpeed;

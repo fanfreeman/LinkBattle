@@ -27,11 +27,13 @@ public class BattleLoader : MonoBehaviour {
     }
 
     public void ChangeEnemyHp(int delta) {
+        Debug.LogError("change enemy: " + delta);
         enemyHP += delta;
         enemyHpHubController.ChangeHealth(delta);
     }
 
     public void ChangePlayerHp(int delta) {
+        Debug.LogError("change player: " + delta);
         playerHP += delta;
         playerHpHubController.ChangeHealth(delta);
     }
