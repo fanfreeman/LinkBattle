@@ -100,18 +100,18 @@ public abstract class Unit : MonoBehaviour {
     }
 
     // 将此单位移动至新的位置
-    public void MoveToPosition(int newX, int newY)
+    public void MoveToPosition(int newX, int newY, bool alsoRemoveFromOldPosition = false)
     {
         if (isAtBottom)
         {
-            BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
+            if (alsoRemoveFromOldPosition) BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
             BoardManager.instance.BottomHalf_SetUnitAtPosition(this, newX, newY);
             Vector3 moveToPos = BoardManager.instance.BottomHalf_GetCoordinatesAtPosition(newX, newY);
             iTween.MoveTo(gameObject, moveToPos, 1f);
         }
         else
         {
-            BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
+            if (alsoRemoveFromOldPosition) BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
             BoardManager.instance.TopHalf_SetUnitAtPosition(this, newX, newY);
             Vector3 moveToPos = BoardManager.instance.TopHalf_GetCoordinatesAtPosition(newX, newY);
             iTween.MoveTo(gameObject, moveToPos, 1f);
@@ -426,15 +426,18 @@ public abstract class Unit : MonoBehaviour {
 
         numTurnsToChargeUpLeft = 0;
 
-        if (unitStatusController != null)
-        {
+        //if (unitStatusController != null)
+        //{
             unitStatusController = null;
             unitStatusCanvas.SetActive(false);
-        }
+        //}
 
         particleActivation.gameObject.SetActive(false);
         particleCountDown.gameObject.SetActive(false);
         particleHit.gameObject.SetActive(false);
         particleDeath.gameObject.SetActive(false);
+
+        //重新开启mouseover高亮
+        shaderSetUpScript.isMouseOverEffectEnabled = true;
     }
 }

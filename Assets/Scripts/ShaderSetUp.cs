@@ -10,7 +10,7 @@ public class ShaderSetUp : MonoBehaviour {
     private List<Shader> initShader = new List<Shader>();
 
 	void Start () {
-        sRens = transform.gameObject.GetComponentsInChildren<SpriteRenderer>();
+        sRens = gameObject.GetComponentsInChildren<SpriteRenderer>();
         getInitMaterial();
     }
 
