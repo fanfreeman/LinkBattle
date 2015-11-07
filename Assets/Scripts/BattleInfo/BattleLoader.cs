@@ -1,15 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class BattleLoader : MonoBehaviour {
     public static BattleLoader instance = null;
 
-    public int enemyHP = 1000;
-    public int playerHP = 1000;
+    public int topHp = 1000;
+    public int bottomHp = 1000;
 
-    public ButtonGiveMeAttacker playerButtonGiveMeAttacker;
-    public ButtonGiveMeAttacker enemyButtonGiveMeAttacker;
+    public ButtonGiveMeReserveUnits bottomCallReserveUnitsController;
+    public ButtonGiveMeReserveUnits topCallReserveUnitsController;
 
     public GameObject enemyHpHub;
     public GameObject playerHpHub;
@@ -17,94 +18,123 @@ public class BattleLoader : MonoBehaviour {
     private StatusBarController enemyHpHubController;
     private StatusBarController playerHpHubController;
 
-    private List<Unit> playerUsedAttackerQueue;
-    private List<Unit> enemyUsedAttackerQueue;
+    private List<Unit> bottomReserveUnitsQueue;
+    private List<Unit> topReserveUnitsQueue;
 
-    private int playerNumberOfReserveUnits = 0;
-    private int enemyNumberOfReserveUnits = 0;
+    private int bottomNumberOfReserveUnits = 0;
+    private int topNumberOfReserveUnits = 0;
 
     // Use this for initialization
-	public void SetUpBattleLoader () {
+	public void SetUpBattleLoader ()
+    {
         if (instance == null) {
             this.enemyHpHubController = enemyHpHub.GetComponent<StatusBarController>();
             this.playerHpHubController = playerHpHub.GetComponent<StatusBarController>();
-            this.playerHpHubController.InitStatus(playerHP, playerHP);
-            this.enemyHpHubController.InitStatus(enemyHP, enemyHP);
-            this.playerUsedAttackerQueue = new List<Unit>();
-            this.enemyUsedAttackerQueue = new List<Unit>();
-            playerButtonGiveMeAttacker.SetNumberOfReserveUnits(0);
-            enemyButtonGiveMeAttacker.SetNumberOfReserveUnits(0);
+            this.playerHpHubController.InitStatus(bottomHp, bottomHp);
+            this.enemyHpHubController.InitStatus(topHp, topHp);
+            this.bottomReserveUnitsQueue = new List<Unit>();
+            this.topReserveUnitsQueue = new List<Unit>();
+            bottomCallReserveUnitsController.SetNumberOfReserveUnits(0);
+            topCallReserveUnitsController.SetNumberOfReserveUnits(0);
+
             instance = this;
         }
         else if (instance != this)
             Destroy(gameObject);
     }
 
-    public void FillUpPlayerAttacker(){
-        if(playerNumberOfReserveUnits == 0)return;
-        BoardManager.instance.FillUpAttacker(playerUsedAttackerQueue,true);
-        playerUsedAttackerQueue.Clear();
-        playerNumberOfReserveUnits = 0;
+    public void EnableBottomCallReserveButton()
+    {
+        topCallReserveUnitsController.clickTrigger.interactable = false;
+        if (bottomNumberOfReserveUnits > 0) bottomCallReserveUnitsController.clickTrigger.interactable = true;
+    }
+
+    public void EnableTopCallReserveButton()
+    {
+        bottomCallReserveUnitsController.clickTrigger.interactable = false;
+        if (topNumberOfReserveUnits > 0) topCallReserveUnitsController.clickTrigger.interactable = true;
+    }
+
+    // 补兵
+    public void EmptyBottomHalfReserveUnits()
+    {
+        if (bottomNumberOfReserveUnits == 0) return;
+        BoardManager.instance.CallReserveUnits(bottomReserveUnitsQueue, true);
+        bottomReserveUnitsQueue.Clear();
+        bottomNumberOfReserveUnits = 0;
         GameManager.instance.UseOneMove();
     }
 
-    public void FillUpEnemyAttacker(){
-        if(enemyNumberOfReserveUnits == 0)return;
-        BoardManager.instance.FillUpAttacker(enemyUsedAttackerQueue,false);
-        enemyUsedAttackerQueue.Clear();
-        enemyNumberOfReserveUnits = 0;
+    // 补兵
+    public void EmptyTopHalfReserveUnits()
+    {
+        if (topNumberOfReserveUnits == 0) return;
+        BoardManager.instance.CallReserveUnits(topReserveUnitsQueue, false);
+        topReserveUnitsQueue.Clear();
+        topNumberOfReserveUnits = 0;
         GameManager.instance.UseOneMove();
     }
 
-    public void AddToPlayerUsedAttackerQueue(Unit attacker){
-        attacker.ResetUnitStatusValue();
-        putAttackerOutOfStage(attacker);
-        playerUsedAttackerQueue.Add(attacker);
-        playerNumberOfReserveUnits++;
-        playerButtonGiveMeAttacker.SetNumberOfReserveUnits(playerNumberOfReserveUnits);
+    public void MoveToBottomHalfReserveQueue(Unit recycledUnit)
+    {
+        recycledUnit.ResetUnitStatusForRecycling();
+        PutRecycledUnitOutOfStage(recycledUnit);
+        bottomReserveUnitsQueue.Add(recycledUnit);
+        bottomNumberOfReserveUnits++;
+
+        // 更新数字显示
+        bottomCallReserveUnitsController.SetNumberOfReserveUnits(bottomNumberOfReserveUnits);
     }
 
-    public void AddToPlayerUsedAttackerQueue(List<Unit> attackers){
-        foreach (Unit t in attackers) {
-            t.ResetUnitStatusValue();
-            putAttackerOutOfStage(t);
-            playerUsedAttackerQueue.Add(t);
-            playerNumberOfReserveUnits++;
-            playerButtonGiveMeAttacker.SetNumberOfReserveUnits(playerNumberOfReserveUnits);
-        }
+    //public void AddToBottomHalfReserveQueue(List<Unit> recycledUnits)
+    //{
+    //    foreach (Unit t in recycledUnits) {
+    //        t.ResetUnitStatusValue();
+    //        PutRecycledUnitOutOfStage(t);
+    //        bottomReserveUnitsQueue.Add(t);
+    //        bottomNumberOfReserveUnits++;
+    //        bottomCallReserveUnitsController.SetNumberOfReserveUnits(bottomNumberOfReserveUnits);
+    //    }
+    //}
+
+    public void MoveToTopHalfReserveQueue(Unit recycledUnit)
+    {
+        recycledUnit.ResetUnitStatusForRecycling();
+        PutRecycledUnitOutOfStage(recycledUnit, false);
+        topReserveUnitsQueue.Add(recycledUnit);
+        topNumberOfReserveUnits++;
+
+        // 更新数字显示
+        topCallReserveUnitsController.SetNumberOfReserveUnits(topNumberOfReserveUnits);
     }
 
-    public void AddToEnemyUsedAttackerQueue(Unit attacker){
-        attacker.ResetUnitStatusValue();
-        putAttackerOutOfStage(attacker, false);
-        enemyUsedAttackerQueue.Add(attacker);
-        enemyNumberOfReserveUnits++;
-        enemyButtonGiveMeAttacker.SetNumberOfReserveUnits(enemyNumberOfReserveUnits);
+    //public void AddToTopHalfReserveQueue(List<Unit> recycledUnits)
+    //{
+    //    foreach (Unit t in recycledUnits) {
+    //        t.ResetUnitStatusValue();
+    //        PutRecycledUnitOutOfStage(t, false);
+    //        topReserveUnitsQueue.Add(t);
+    //        topNumberOfReserveUnits++;
+    //        topCallReserveUnitsController.SetNumberOfReserveUnits(topNumberOfReserveUnits);
+    //    }
+    //}
+
+    private void PutRecycledUnitOutOfStage(Unit recycledUnit, bool isplayer = true)
+    {
+        Vector3 pos = recycledUnit.transform.position;
+        pos.y = isplayer ? -13f : 13f;
+        recycledUnit.transform.position = pos;
     }
 
-    public void AddToEnemyUsedAttackerQueue(List<Unit> attackers){
-        foreach (Unit t in attackers) {
-            t.ResetUnitStatusValue();
-            putAttackerOutOfStage(t, false);
-            enemyUsedAttackerQueue.Add(t);
-            enemyNumberOfReserveUnits++;
-            enemyButtonGiveMeAttacker.SetNumberOfReserveUnits(enemyNumberOfReserveUnits);
-        }
-    }
-
-    private void putAttackerOutOfStage(Unit attacker, bool isplayer = true){
-        Vector3 pos = attacker.transform.position;
-        pos.y = isplayer?-13f:13f;
-        attacker.transform.position = pos;
-    }
-
-    public void ChangeEnemyHp(int delta) {
-        enemyHP += delta;
+    public void ChangeTopHp(int delta)
+    {
+        topHp += delta;
         enemyHpHubController.ChangeHealth(delta);
     }
 
-    public void ChangePlayerHp(int delta) {
-        playerHP += delta;
+    public void ChangeBottomHp(int delta)
+    {
+        bottomHp += delta;
         playerHpHubController.ChangeHealth(delta);
     }
 }

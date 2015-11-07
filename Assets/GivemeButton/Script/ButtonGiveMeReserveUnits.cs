@@ -5,19 +5,16 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 
-public class ButtonGiveMeAttacker : MonoBehaviour {
+public class ButtonGiveMeReserveUnits : MonoBehaviour {
 	public Text numText;
     public Button clickTrigger;
-	// Use this for initialization
-    public Action OnClick;
 
     [Serializable]
     public class MyEventType : UnityEvent { }
     public MyEventType OnEvent;
 
-    public void SetNumberOfReserveUnits(int num){
+    public void SetNumberOfReserveUnits(int num) {
         numText.text = num.ToString();
-
     }
 
     private void TriggerClick( ){
@@ -25,19 +22,9 @@ public class ButtonGiveMeAttacker : MonoBehaviour {
         OnEvent.Invoke();
     }
 
-    private void test( ){
-
-    }
-
-
 	void Start () {
         clickTrigger.onClick.AddListener(delegate() {
             this.TriggerClick();
         });
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
 	}
 }

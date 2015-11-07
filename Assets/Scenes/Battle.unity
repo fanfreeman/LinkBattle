@@ -37,6 +37,9 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
+--- !u!127 &3
+LevelGameManager:
+  m_ObjectHideFlags: 0
 --- !u!157 &4
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -65,7 +68,6 @@ LightmapSettings:
     m_TextureCompression: 1
     m_FinalGather: 0
     m_FinalGatherRayCount: 1024
-    m_ReflectionCompression: 2
   m_LightmapSnapshot: {fileID: 0}
   m_RuntimeCPUUsage: 25
 --- !u!196 &5
@@ -1241,11 +1243,11 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 136
+      value: 28
       objectReference: {fileID: 0}
     - target: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 732
+      value: 713
       objectReference: {fileID: 0}
     - target: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_SizeDelta.x
@@ -1289,7 +1291,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 148092, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_Name
-      value: ButtonGiveMeAttackerEnemy
+      value: ButtonCallReserveTop
       objectReference: {fileID: 0}
     - target: {fileID: 11487172, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_Color.r
@@ -1325,11 +1327,15 @@ Prefab:
       objectReference: {fileID: 1213210211}
     - target: {fileID: 11463674, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: OnEvent.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: FillUpEnemyAttacker
+      value: EmptyTopHalfReserveUnits
       objectReference: {fileID: 0}
     - target: {fileID: 11463674, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: OnEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 11434972, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
+      propertyPath: m_Interactable
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
@@ -1364,12 +1370,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: .90196085, g: .776470661, b: .376470625, a: 1}
-  m_RaycastTarget: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 87778555f6eb0a34fbc1a92ddf48c21a, type: 3}
     m_FontSize: 100
@@ -1593,11 +1593,11 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: 243
+      value: 332
       objectReference: {fileID: 0}
     - target: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: -618
+      value: -606
       objectReference: {fileID: 0}
     - target: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_SizeDelta.x
@@ -1641,7 +1641,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 148092, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_Name
-      value: ButtonGiveMeAttackerPlayer
+      value: ButtonCallReserveBottom
       objectReference: {fileID: 0}
     - target: {fileID: 11487172, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_Color.r
@@ -1677,7 +1677,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 11463674, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: OnEvent.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: FillUpPlayerAttacker
+      value: EmptyBottomHalfReserveUnits
       objectReference: {fileID: 0}
     - target: {fileID: 11463674, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: OnEvent.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
@@ -1693,6 +1693,10 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 22320284, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
       propertyPath: m_OverridePixelPerfect
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11434972, guid: cfa64ec3dd871154fb1bf3f4e6748afc, type: 2}
+      propertyPath: m_Interactable
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -2968,12 +2972,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 1, b: .586206913, a: 1}
-  m_RaycastTarget: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 87778555f6eb0a34fbc1a92ddf48c21a, type: 3}
     m_FontSize: 40
@@ -3057,12 +3055,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_Sprite: {fileID: 21300000, guid: d03165d86b5675e49bf7d8b8f739015d, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
@@ -3106,7 +3098,7 @@ MonoBehaviour:
   m_Script: {fileID: 1997211142, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ForceModuleActive: 0
+  m_AllowActivationOnStandalone: 0
 --- !u!114 &466425385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3124,7 +3116,7 @@ MonoBehaviour:
   m_CancelButton: Cancel
   m_InputActionsPerSecond: 10
   m_RepeatDelay: .5
-  m_ForceModuleActive: 0
+  m_AllowActivationOnMobileDevice: 0
 --- !u!114 &466425386
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3455,12 +3447,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 1, b: .586206913, a: 1}
-  m_RaycastTarget: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 87778555f6eb0a34fbc1a92ddf48c21a, type: 3}
     m_FontSize: 40
@@ -3831,12 +3817,6 @@ SpriteRenderer:
   m_SortingOrder: 15
   m_Sprite: {fileID: 21300000, guid: b7a221e4b3a28c74f8282ca0221cfb2a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
---- !u!114 &1047301936 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 11434972, guid: cfa64ec3dd871154fb1bf3f4e6748afc,
-    type: 2}
-  m_PrefabInternal: {fileID: 40001391}
-  m_Script: {fileID: 1392445389, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
 --- !u!1001 &1079632434
 Prefab:
   m_ObjectHideFlags: 0
@@ -5105,8 +5085,6 @@ MonoBehaviour:
     type: 2}
   selectorTop: {fileID: 1044802820}
   selectorBottom: {fileID: 800121292}
-  giveAttackerPlayer: {fileID: 1909767368}
-  giveAttackerEnemy: {fileID: 1047301936}
   boardScript: {fileID: 0}
   battleLoader: {fileID: 0}
   playersTurn: 0
@@ -5130,8 +5108,6 @@ MonoBehaviour:
   numColumns: 8
   numRowsPerSide: 6
   unitBeingPickedUp: {fileID: 0}
-  gridCoordinatesTop: []
-  gridCoordinatesBottom: []
 --- !u!114 &1213210211
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5143,10 +5119,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060c6bccb4211bd4c8c5293b5a8dc7a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyHP: 1000
-  playerHP: 1000
-  playerButtonGiveMeAttacker: {fileID: 1709619583}
-  enemyButtonGiveMeAttacker: {fileID: 2063141010}
+  topHp: 1000
+  bottomHp: 1000
+  bottomCallReserveUnitsController: {fileID: 1709619583}
+  topCallReserveUnitsController: {fileID: 2063141010}
   enemyHpHub: {fileID: 977135823}
   playerHpHub: {fileID: 1079632436}
 --- !u!114 &1213210212
@@ -5775,12 +5751,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
---- !u!114 &1909767368 stripped
-MonoBehaviour:
-  m_PrefabParentObject: {fileID: 11434972, guid: cfa64ec3dd871154fb1bf3f4e6748afc,
-    type: 2}
-  m_PrefabInternal: {fileID: 221611869}
-  m_Script: {fileID: 1392445389, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
 --- !u!224 &2063141008 stripped
 RectTransform:
   m_PrefabParentObject: {fileID: 22469032, guid: cfa64ec3dd871154fb1bf3f4e6748afc,

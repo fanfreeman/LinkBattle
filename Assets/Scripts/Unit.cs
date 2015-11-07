@@ -45,6 +45,8 @@ public abstract class Unit : MonoBehaviour {
     Transform unitFeaturesTransform;
     Transform damageTransform;
 
+    private float originalHealth; // 记录单位初始health值，因为heathMax在蓄力时会变
+
     void Awake()
     {
         unitFeaturesTransform = transform.Find("UnitFeatures");
@@ -53,6 +55,7 @@ public abstract class Unit : MonoBehaviour {
         shaderSetUpScript = GetComponent<ShaderSetUp>();
         animController = unitFeaturesTransform.GetComponent<UnitAnimationController>();
         SetHealth(healthMax);
+        originalHealth = healthMax;
         attackBuddies = new List<Unit>(2);
 
         // 初始化particles
@@ -72,29 +75,6 @@ public abstract class Unit : MonoBehaviour {
         }
         
         unitStatusCanvas = unitFeaturesTransform.Find("UnitStatusCanvas").gameObject;
-    }
-
-    //复用重置属性
-    public void ResetUnitStatusValue(){
-        if(isChargeUpLeader){
-            healthMax /= 3;
-        }
-
-        numTurnsToChargeUpLeft = 0;
-        if(unitStatusController!=null){
-            unitStatusController = null;
-            unitStatusCanvas.SetActive(false);
-        }
-        SetHealth(healthMax);
-        particleActivation.gameObject.SetActive(false);
-        particleCountDown.gameObject.SetActive(false);
-        particleHit.gameObject.SetActive(false);
-        particleDeath.gameObject.SetActive(false);
-        unitStatusCanvas.SetActive(false);
-        ResetAttackBuddies();
-        isChargeUpLeader = false;
-
-
     }
 
     void InitUnitStatusControllerIfNeeded()
@@ -346,7 +326,6 @@ public abstract class Unit : MonoBehaviour {
         }
 
         if (healthCurrent <= 0) StartCoroutine(Die(true));
-
     }
 
     // 播放动画，然后从棋盘上清除此单位
@@ -360,18 +339,24 @@ public abstract class Unit : MonoBehaviour {
         yield return new WaitForSeconds(0.3f);
 
         //BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
-//        if(isAtBottom)
-//            BattleLoader.instance.AddToPlayerUsedAttackerQueue(this);
-//        else
-//            BattleLoader.instance.AddToEnemyUsedAttackerQueue(this);
 
+        // 回收再利用
+        if (isAtBottom)
+            BattleLoader.instance.MoveToBottomHalfReserveQueue(this);
+        else
+            BattleLoader.instance.MoveToTopHalfReserveQueue(this);
         //Destroy(gameObject);
     }
 
     // 立刻从棋盘上清除此单位
     protected void RemoveImmediately()
     {
-        Destroy(gameObject);
+        // 回收再利用
+        if (isAtBottom)
+            BattleLoader.instance.MoveToBottomHalfReserveQueue(this);
+        else
+            BattleLoader.instance.MoveToTopHalfReserveQueue(this);
+        //Destroy(gameObject);
     }
 
     // 单位接收伤害；返回实际造成的伤害值
@@ -400,7 +385,7 @@ public abstract class Unit : MonoBehaviour {
 
     IEnumerator Die(bool isDeathLeader)
     {
-        // 检查是否是正在蓄力的单位组
+        // 检查是否是正在蓄力的单位组，如是则播放大爆炸粒子效果
         if (isDeathLeader && attackBuddies.Count > 0)
         {
             foreach (Unit buddy in attackBuddies)
@@ -415,15 +400,41 @@ public abstract class Unit : MonoBehaviour {
             }
         }
 
+        // 腾出棋盘格位
         if (isAtBottom) BoardManager.instance.BottomHalf_SetUnitAtPosition(null, boardX, boardY);
         else BoardManager.instance.TopHalf_SetUnitAtPosition(null, boardX, boardY);
         
+        // 等待片刻
         yield return new WaitForSeconds(0.3f);
-        if(isAtBottom)
-            BattleLoader.instance.AddToPlayerUsedAttackerQueue(this);
-        else
-            BattleLoader.instance.AddToEnemyUsedAttackerQueue(this);
 
+        // 回收此单位
+        if (isAtBottom)
+            BattleLoader.instance.MoveToBottomHalfReserveQueue(this);
+        else
+            BattleLoader.instance.MoveToTopHalfReserveQueue(this);
         //Destroy(gameObject);
+    }
+
+    // 回收单位时重置属性
+    public void ResetUnitStatusForRecycling()
+    {
+        healthMax = originalHealth;
+        SetHealth(healthMax);
+
+        ResetAttackBuddies();
+        isChargeUpLeader = false;
+
+        numTurnsToChargeUpLeft = 0;
+
+        if (unitStatusController != null)
+        {
+            unitStatusController = null;
+            unitStatusCanvas.SetActive(false);
+        }
+
+        particleActivation.gameObject.SetActive(false);
+        particleCountDown.gameObject.SetActive(false);
+        particleHit.gameObject.SetActive(false);
+        particleDeath.gameObject.SetActive(false);
     }
 }

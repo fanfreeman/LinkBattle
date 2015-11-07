@@ -9,8 +9,6 @@ public class GameManager : MonoBehaviour {
     public GameObject columnHighlightPrefab;
     public GameObject selectorTop;
     public GameObject selectorBottom;
-    public Button giveAttackerPlayer;
-    public Button giveAttackerEnemy;
 
     [HideInInspector] public BoardManager boardScript;
     [HideInInspector] public BattleLoader battleLoader;
@@ -86,21 +84,17 @@ public class GameManager : MonoBehaviour {
         else moveTextTop.text = movesLeftThisTurn.ToString();
     }
 
-    // 进入下一回合，开始显示回合message
+    // 进入下一回合第一步，开始显示回合message
     public void GoToNextTurn()
     {
         playersTurn = !playersTurn;
-
-        giveAttackerPlayer.interactable = playersTurn;
-        giveAttackerEnemy.interactable = !playersTurn;
-
         movesLeftThisTurn = 3;
         SetNumberOfMovesText();
         RevokeControl();
         turnMessageController.Show();
     }
 
-    // 显示回合开始message后，第一步是给蓄力中的单位减少蓄力countdown，以及蓄满的单位发动攻击
+    // 显示回合开始message后，第二步是给蓄力中的单位减少蓄力countdown，以及蓄满的单位发动攻击
     public void TurnStartStep_ChargingUnitsTickDown()
     {
         if (playersTurn)
@@ -113,15 +107,18 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    // 回合开始第三步，玩家获得控制（真正的回合开始）
     public void TurnStartStep_GrantPlayerControl()
     {
         if (playersTurn)
         {
             selectorBottom.SetActive(true);
+            BattleLoader.instance.EnableBottomCallReserveButton();
         }
         else
         {
             selectorTop.SetActive(true);
+            BattleLoader.instance.EnableTopCallReserveButton();
         }
 
         canMove = true;
