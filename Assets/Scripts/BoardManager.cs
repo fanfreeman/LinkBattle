@@ -14,12 +14,12 @@ using System.Collections.Generic;
  * Tail 某一列的尾部的格位
  * Move 步数，每回合可以走三步
  */
-public class BoardManager : MonoBehaviour {
+public class BoardManager : Photon.MonoBehaviour {
 
     public static BoardManager instance = null;
 
     // 兵种
-    public GameObject[] units;
+    public GameObject[] unitPrefabs;
 
     // 棋盘每一边的大小
     public int numColumns = 8;
@@ -36,7 +36,15 @@ public class BoardManager : MonoBehaviour {
     private List<Unit> unitGridTop;
     private List<Unit> unitGridBottom;
 
-    public void SetupScene() {
+    // 兵种种类列表
+    public enum UnitTypes : int {
+        Archer = 0,
+        Knight = 1
+    };
+
+    // 初始化棋盘
+    public void InitBoard()
+    {
         if (instance == null)
             instance = this;
         else if (instance != this)
@@ -44,10 +52,17 @@ public class BoardManager : MonoBehaviour {
 
         SetUpGrids();
         InitializeGridCoordinates();
-        LayoutObjectAtRandom(true, units, 13, 17); // top
-        LayoutObjectAtRandom(false, units, 13, 17); // bottom
+    }
+
+    // 给棋盘随机摆兵
+    public void SetupRandomBoardState() {
+        LayoutObjectAtRandom(true, unitPrefabs, 20, 20); // top
+        LayoutObjectAtRandom(false, unitPrefabs, 20, 20); // bottom
 
         PrintGrids();
+
+        // send board state to other player
+        SendBoardState();
 
         StartCoroutine(TopHalf_ConsolidateUnits());
         StartCoroutine(BottomHalf_ConsolidateUnits(GameManager.instance, "GoToNextTurn"));
@@ -343,7 +358,7 @@ public class BoardManager : MonoBehaviour {
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
-                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
+                unitTwoInFront.ActivateChargeUp(unitInFront, unit, true); // 组成三连formation
             }
         }
     }
@@ -606,8 +621,106 @@ public class BoardManager : MonoBehaviour {
         Debug.Log(output);
     }
 
-    void Update()
+    // BOF Network Code
+    void SendBoardState()
     {
-        
+        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom));
     }
+
+    public void SendPickUpUnit(int x, int y)
+    {
+        photonView.RPC("SyncPickUpUnit", PhotonTargets.Others, x, y);
+    }
+
+    [PunRPC]
+    void SyncPickUpUnit(int x, int y)
+    {
+        Unit unit = TopHalf_GetUnitAtPosition(x, y);
+        unit.NetworkPickUpEnemyUnit();
+    }
+
+    public void SendPutDownUnit(int x)
+    {
+        photonView.RPC("SyncPutDownUnit", PhotonTargets.Others, x);
+    }
+
+    [PunRPC]
+    void SyncPutDownUnit(int columnNumber)
+    {
+        if (BoardManager.instance.unitBeingPickedUp != null) // 如果有单位被玩家捡起，将其放置在选定的column尾部
+        {
+            if (!GameManager.instance.playersTurn)
+            {
+                if (BoardManager.instance.unitBeingPickedUp.boardX == columnNumber) // 玩家把单位放回至其所在的列，不减少move
+                {
+                    if (BoardManager.instance.TopHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                    {
+                        BoardManager.instance.unitBeingPickedUp = null;
+                        GameManager.instance.SetColumnHighlightEnabled(false, 0f);
+                    }
+                }
+                else // 玩家将单位放在另一列，用掉一个move
+                {
+                    if (BoardManager.instance.TopHalf_LetUnitEnterColumnFromTail(BoardManager.instance.unitBeingPickedUp, columnNumber))
+                    {
+                        BoardManager.instance.unitBeingPickedUp = null;
+                        GameManager.instance.SetColumnHighlightEnabled(false, 0f);
+                        GameManager.instance.UseOneMove();
+                    }
+                }
+            }
+        }
+    }
+
+    int[] SerializeUnitGridAsUnitTypes(List<Unit> unitGrid)
+    {
+        int[] arrUnitGrid = new int[unitGrid.Count];
+        for (int index = 0; index < unitGrid.Count; index++)
+        {
+            Unit unit = unitGrid[index];
+            if (unit != null) arrUnitGrid[index] = (int)unit.GetUnitType();
+            else arrUnitGrid[index] = -1;
+        }
+        return arrUnitGrid;
+    }
+    
+    [PunRPC]
+    void SyncBoard(int[] myGrid, int[] enemyGrid)
+    {
+        Debug.Log("syncing board: ");
+
+        for (int index = 0; index < myGrid.Length; index++)
+        {
+            int unitType = myGrid[index];
+            if (unitType >= 0) // skip empty spaces
+            {
+                Vector3 coordinates = gridCoordinatesBottom[index];
+                GameObject obj = Instantiate(unitPrefabs[unitType], coordinates, Quaternion.identity) as GameObject;
+                Vector2 position = GetPositionGivenArrayIndex(index);
+                unitGridBottom[index] = obj.GetComponent<Unit>();
+                unitGridBottom[index].SetPositionValues((int)position.x, (int)position.y);
+                unitGridBottom[index].SetIsAtBottom(true);
+                unitGridBottom[index].SetSortingLayer();
+            }
+        }
+
+        for (int index = 0; index < enemyGrid.Length; index++)
+        {
+            int unitType = enemyGrid[index];
+            if (unitType >= 0) // skip empty spaces
+            {
+                Vector3 coordinates = gridCoordinatesTop[index];
+                GameObject obj = Instantiate(unitPrefabs[unitType], coordinates, Quaternion.identity) as GameObject;
+                Vector2 position = GetPositionGivenArrayIndex(index);
+                unitGridTop[index] = obj.GetComponent<Unit>();
+                unitGridTop[index].SetPositionValues((int)position.x, (int)position.y);
+                unitGridTop[index].SetIsAtBottom(false);
+                unitGridTop[index].SetSortingLayer();
+            }
+        }
+
+        StartCoroutine(TopHalf_ConsolidateUnits());
+        StartCoroutine(BottomHalf_ConsolidateUnits(GameManager.instance, "GoToEnemyTurn"));
+    }
+    // EOF Network Code
 }

@@ -6,6 +6,11 @@ public class Archer : Unit {
 
     public GameObject projectilePrefab;
 
+    public override BoardManager.UnitTypes GetUnitType()
+    {
+        return BoardManager.UnitTypes.Archer;
+    }
+
     public override string GetTypeString()
     {
         return "Archer";

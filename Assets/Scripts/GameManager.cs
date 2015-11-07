@@ -2,8 +2,8 @@
 using UnityEngine.UI;
 using System.Collections;
 
-public class GameManager : MonoBehaviour {
-
+public class GameManager : Photon.PunBehaviour
+{
     public static GameManager instance = null;
 
     public GameObject columnHighlightPrefab;
@@ -40,12 +40,73 @@ public class GameManager : MonoBehaviour {
 
         boardScript = GetComponent<BoardManager>();
         battleLoader = GetComponent<BattleLoader>();
+
         InitGame();
+
+        PhotonNetwork.ConnectUsingSettings("0.1");
     }
+
+    // BOF Network Code
+    int networkState = 0;
+
+    public override void OnJoinedLobby()
+    {
+        Debug.Log("JoinRandom");
+        PhotonNetwork.JoinRandomRoom();
+    }
+
+    public void OnPhotonRandomJoinFailed()
+    {
+        PhotonNetwork.CreateRoom(null);
+    }
+
+    public override void OnJoinedRoom()
+    {
+        if (PhotonNetwork.isMasterClient)
+        {
+            networkState = 1;
+            Debug.Log("Joined room, staring new game...");
+        }
+        else
+        {
+            Debug.Log("Joined room, waiting for game state from master...");
+        }
+    }
+
+    public void OnGUI()
+    {
+        string statusString = "";
+        switch (networkState)
+        {
+            case 0:
+                statusString = PhotonNetwork.connectionStateDetailed.ToString();
+                break;
+            case 1:
+                statusString = "Waiting for other player to connect...";
+                break;
+        }
+        GUILayout.Label(statusString);
+
+        //if (PhotonNetwork.connectionStateDetailed == PeerState.Joined)
+        //{
+            
+        //}
+    }
+
+    public override void OnPhotonPlayerConnected(PhotonPlayer player)
+    {
+        Debug.Log("OnPhotonPlayerConnected: " + player);
+
+        if (PhotonNetwork.isMasterClient)
+        {
+            BoardManager.instance.SetupRandomBoardState();
+        }
+    }
+    // EOF Network Code
 
     void InitGame()
     {
-        boardScript.SetupScene();
+        boardScript.InitBoard();
         battleLoader.SetUpBattleLoader();
         CreateColumnHighlight();
     }
@@ -92,6 +153,12 @@ public class GameManager : MonoBehaviour {
         SetNumberOfMovesText();
         RevokeControl();
         turnMessageController.Show();
+    }
+
+    void GoToEnemyTurn()
+    {
+        playersTurn = true;
+        GoToNextTurn();
     }
 
     // 显示回合开始message后，第二步是给蓄力中的单位减少蓄力countdown，以及蓄满的单位发动攻击
