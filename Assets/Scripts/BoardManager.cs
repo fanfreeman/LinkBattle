@@ -118,9 +118,12 @@ public class BoardManager : MonoBehaviour {
     {
         int objectCount = listOfReserveUnits.Count;
         for (int i = 0; i < objectCount; i++)  {
+            Unit reserveUnit = listOfReserveUnits[i];
+            //重新开启mouseover高亮
+            ShaderSetUp shaderSetUpScript = reserveUnit.GetComponent<ShaderSetUp>();
+            shaderSetUpScript.isMouseOverEffectEnabled = true;
             if (isBottomHalf)
             {
-                Unit reserveUnit = listOfReserveUnits[i];
                 while (!BottomHalf_LetUnitEnterColumnFromTail(reserveUnit, Random.Range(0, numColumns)))
                 {
                     // 如果没成功（放不下），就再来一次
@@ -128,7 +131,6 @@ public class BoardManager : MonoBehaviour {
             }
             else
             {
-                Unit reserveUnit = listOfReserveUnits[i];
                 while (!TopHalf_LetUnitEnterColumnFromTail(reserveUnit, Random.Range(0, numColumns)))
                 {
                     // 如果没成功（放不下），就再来一次

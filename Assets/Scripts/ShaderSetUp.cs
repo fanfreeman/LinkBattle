@@ -3,15 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 public class ShaderSetUp : MonoBehaviour {
 
-    public Shader shader;
-    public GameObject body;
+    public Shader shader; //mousehover effect
     public bool isMouseOverEffectEnabled = true;
 
     private SpriteRenderer[] sRens;
     private List<Shader> initShader = new List<Shader>();
 
 	void Start () {
-        sRens = body.GetComponentsInChildren<SpriteRenderer>();
+        sRens = transform.gameObject.GetComponentsInChildren<SpriteRenderer>();
         getInitMaterial();
     }
 
