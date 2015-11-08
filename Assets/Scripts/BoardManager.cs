@@ -622,11 +622,7 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     // BOF Network Code
-    void SendBoardState()
-    {
-        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom));
-    }
-
+    // 将单位拿起
     public void SendPickUpUnit(int x, int y)
     {
         photonView.RPC("SyncPickUpUnit", PhotonTargets.Others, x, y);
@@ -639,6 +635,7 @@ public class BoardManager : Photon.MonoBehaviour {
         unit.NetworkPickUpEnemyUnit();
     }
 
+    // 将单位放下
     public void SendPutDownUnit(int x)
     {
         photonView.RPC("SyncPutDownUnit", PhotonTargets.Others, x);
@@ -672,6 +669,12 @@ public class BoardManager : Photon.MonoBehaviour {
         }
     }
 
+    // 游戏初始时，一端发送棋盘布局给另一端
+    void SendBoardState()
+    {
+        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom));
+    }
+
     int[] SerializeUnitGridAsUnitTypes(List<Unit> unitGrid)
     {
         int[] arrUnitGrid = new int[unitGrid.Count];
@@ -683,7 +686,7 @@ public class BoardManager : Photon.MonoBehaviour {
         }
         return arrUnitGrid;
     }
-    
+
     [PunRPC]
     void SyncBoard(int[] myGrid, int[] enemyGrid)
     {
@@ -721,6 +724,12 @@ public class BoardManager : Photon.MonoBehaviour {
 
         StartCoroutine(TopHalf_ConsolidateUnits());
         StartCoroutine(BottomHalf_ConsolidateUnits(GameManager.instance, "GoToEnemyTurn"));
+    }
+
+    // 同步补兵具体细节
+    void SendCallReserveUnitsDetails()
+    {
+        photonView.RPC("SyncCallReserveUnitsDetails", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom));
     }
     // EOF Network Code
 }
