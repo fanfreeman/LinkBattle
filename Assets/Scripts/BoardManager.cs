@@ -119,9 +119,6 @@ public class BoardManager : MonoBehaviour {
         int objectCount = listOfReserveUnits.Count;
         for (int i = 0; i < objectCount; i++)  {
             Unit reserveUnit = listOfReserveUnits[i];
-            //重新开启mouseover高亮
-            ShaderSetUp shaderSetUpScript = reserveUnit.GetComponent<ShaderSetUp>();
-            shaderSetUpScript.isMouseOverEffectEnabled = true;
             if (isBottomHalf)
             {
                 while (!BottomHalf_LetUnitEnterColumnFromTail(reserveUnit, Random.Range(0, numColumns)))
@@ -230,7 +227,7 @@ public class BoardManager : MonoBehaviour {
                     {
                         if (TopHalf_GetUnitAtPosition(x, newY) == null) // 往前一行有空位
                         {
-                            unit.MoveToPosition(x, newY);
+                            unit.MoveToPosition(x, newY, true);
                             yield return null;
                         }
                         else
@@ -266,7 +263,7 @@ public class BoardManager : MonoBehaviour {
                     {
                         if (BottomHalf_GetUnitAtPosition(x, newY) == null) // 往前一行有空位
                         {
-                            unit.MoveToPosition(x, newY);
+                            unit.MoveToPosition(x, newY, true);
                             yield return null;
                         }
                         else
@@ -527,7 +524,7 @@ public class BoardManager : MonoBehaviour {
                 {
                     if (TopHalf_GetUnitAtPosition(col, newY) == null) // 往前一行有空位
                     {
-                        unit.MoveToPosition(col, newY);
+                        unit.MoveToPosition(col, newY, true);
                         yield return new WaitForSeconds(0.1f);
                     }
                     else
@@ -561,7 +558,7 @@ public class BoardManager : MonoBehaviour {
                 {
                     if (BottomHalf_GetUnitAtPosition(col, newY) == null) // 往前一行有空位
                     {
-                        unit.MoveToPosition(col, newY);
+                        unit.MoveToPosition(col, newY, true);
                         yield return new WaitForSeconds(0.1f);
                     }
                     else
