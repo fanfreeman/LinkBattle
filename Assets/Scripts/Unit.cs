@@ -298,6 +298,7 @@ public abstract class Unit : MonoBehaviour {
             particleCountDown.Play();
         }
 
+        Debug.Log(numTurnsToChargeUpLeft);
         numTurnsToChargeUpLeft--;
         unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
 
@@ -462,8 +463,6 @@ public abstract class Unit : MonoBehaviour {
 
         ResetAttackBuddies();
         isChargeUpLeader = false;
-
-        numTurnsToChargeUpLeft = 0;
 
         //if (unitStatusController != null)
         //{

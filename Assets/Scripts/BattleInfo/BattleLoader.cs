@@ -18,8 +18,8 @@ public class BattleLoader : MonoBehaviour {
     private StatusBarController enemyHpHubController;
     private StatusBarController playerHpHubController;
 
-    private List<Unit> bottomReserveUnitsQueue;
-    private List<Unit> topReserveUnitsQueue;
+    public List<Unit> bottomReserveUnitsQueue;
+    public List<Unit> topReserveUnitsQueue;
 
     private int bottomNumberOfReserveUnits = 0;
     private int topNumberOfReserveUnits = 0;
@@ -60,6 +60,12 @@ public class BattleLoader : MonoBehaviour {
     {
         if (bottomNumberOfReserveUnits == 0) return;
         BoardManager.instance.CallReserveUnits(bottomReserveUnitsQueue, true);
+        BottomHalf_ClearReserveUnitsQueueAndUseOneMove();
+    }
+
+    // 清空补兵queue，并进入下一回合
+    public void BottomHalf_ClearReserveUnitsQueueAndUseOneMove()
+    {
         bottomReserveUnitsQueue.Clear();
         bottomNumberOfReserveUnits = 0;
         GameManager.instance.UseOneMove();
@@ -70,6 +76,12 @@ public class BattleLoader : MonoBehaviour {
     {
         if (topNumberOfReserveUnits == 0) return;
         BoardManager.instance.CallReserveUnits(topReserveUnitsQueue, false);
+        TopHalf_ClearReserveUnitsQueueAndUseOneMove();
+    }
+
+    // 清空补兵queue，并进入下一回合
+    public void TopHalf_ClearReserveUnitsQueueAndUseOneMove()
+    {
         topReserveUnitsQueue.Clear();
         topNumberOfReserveUnits = 0;
         GameManager.instance.UseOneMove();

@@ -19,6 +19,7 @@ public class ButtonGiveMeReserveUnits : MonoBehaviour {
 
     private void TriggerClick( ){
         numText.text ="0";
+        clickTrigger.interactable = false;
         OnEvent.Invoke();
     }
 

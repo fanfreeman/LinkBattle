@@ -128,29 +128,6 @@ public class BoardManager : Photon.MonoBehaviour {
         return randomIndex;
     }
 
-    // 从回收的池子中补兵
-    public void CallReserveUnits(List<Unit> listOfReserveUnits, bool isBottomHalf)
-    {
-        int objectCount = listOfReserveUnits.Count;
-        for (int i = 0; i < objectCount; i++)  {
-            Unit reserveUnit = listOfReserveUnits[i];
-            if (isBottomHalf)
-            {
-                while (!BottomHalf_LetUnitEnterColumnFromTail(reserveUnit, Random.Range(0, numColumns)))
-                {
-                    // 如果没成功（放不下），就再来一次
-                }
-            }
-            else
-            {
-                while (!TopHalf_LetUnitEnterColumnFromTail(reserveUnit, Random.Range(0, numColumns)))
-                {
-                    // 如果没成功（放不下），就再来一次
-                }
-            }
-        }
-    }
-
     // 随机找空格位放置单位
     void LayoutObjectAtRandom(bool isTopHalf, GameObject[] unitPrefabs, int minimum, int maximum) {
         int objectCount = Random.Range(minimum, maximum + 1);
@@ -471,11 +448,12 @@ public class BoardManager : Photon.MonoBehaviour {
                 Unit unit = TopHalf_GetUnitAtPosition(x, y);
                 if (unit != null)
                 {
-                    if (unit.ChargeUpTickDown() == 0)
+                    int tickDownTurnsLeft = unit.ChargeUpTickDown();
+                    if (tickDownTurnsLeft == 0)
                     {
                         yield return new WaitForSeconds(1f); // 攻击后等待久一点
                     }
-                    else if (unit.ChargeUpTickDown() > 0)
+                    else if (tickDownTurnsLeft > 0)
                     {
                         yield return new WaitForSeconds(0.3f); // 只是蓄力的话等待短一点
                     }
@@ -501,11 +479,12 @@ public class BoardManager : Photon.MonoBehaviour {
                 Unit unit = BottomHalf_GetUnitAtPosition(x, y);
                 if (unit != null)
                 {
-                    if (unit.ChargeUpTickDown() == 0)
+                    int tickDownTurnsLeft = unit.ChargeUpTickDown();
+                    if (tickDownTurnsLeft == 0)
                     {
                         yield return new WaitForSeconds(1f); // 攻击后等待久一点
                     }
-                    else if (unit.ChargeUpTickDown() > 0)
+                    else if (tickDownTurnsLeft > 0)
                     {
                         yield return new WaitForSeconds(0.3f); // 只是蓄力的话等待短一点
                     }
@@ -690,7 +669,7 @@ public class BoardManager : Photon.MonoBehaviour {
     [PunRPC]
     void SyncBoard(int[] myGrid, int[] enemyGrid)
     {
-        Debug.Log("syncing board: ");
+        Debug.Log("syncing board...");
 
         for (int index = 0; index < myGrid.Length; index++)
         {
@@ -727,9 +706,70 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     // 同步补兵具体细节
-    void SendCallReserveUnitsDetails()
+    void SendCallReserveUnitsDetails(int[] arrCallReserveColumns)
     {
-        photonView.RPC("SyncCallReserveUnitsDetails", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom));
+        photonView.RPC("SyncCallReserveUnitsDetails", PhotonTargets.Others, arrCallReserveColumns);
+    }
+
+    // 远端client根据补兵细节完成补兵
+    [PunRPC]
+    void SyncCallReserveUnitsDetails(int[] arrCallReserveColumns)
+    {
+        Debug.Log("remote client calling reserve units...");
+
+        List<Unit> listOfReserveUnits = BattleLoader.instance.topReserveUnitsQueue;
+        int numReserveUnits = listOfReserveUnits.Count;
+        if (numReserveUnits != arrCallReserveColumns.Length) throw new System.Exception("Reserve Units List and Details Array Size Mismatch");
+        for (int i = 0; i < numReserveUnits; i++)
+        {
+            Unit reserveUnit = listOfReserveUnits[i];
+            if (GameManager.instance.playersTurn)
+            {
+                    throw new System.Exception("Remote should not call reserve units while it is our turn");
+                }
+            else
+            {
+                TopHalf_LetUnitEnterColumnFromTail(reserveUnit, arrCallReserveColumns[i]);
+            }
+        }
+
+        BattleLoader.instance.TopHalf_ClearReserveUnitsQueueAndUseOneMove();
     }
     // EOF Network Code
+
+    // 从回收的池子中补兵
+    public void CallReserveUnits(List<Unit> listOfReserveUnits, bool isBottomHalf)
+    {
+        int numReserveUnits = listOfReserveUnits.Count;
+        int[] arrCallReserveColumns = new int[numReserveUnits]; // network code
+        for (int i = 0; i < numReserveUnits; i++)
+        {
+            Unit reserveUnit = listOfReserveUnits[i];
+            if (isBottomHalf)
+            {
+                int randomCol = Random.Range(0, numColumns);
+                while (!BottomHalf_LetUnitEnterColumnFromTail(reserveUnit, randomCol))
+                {
+                    // 如果没成功（放不下），就再来一次
+                    randomCol = Random.Range(0, numColumns);
+                }
+
+                arrCallReserveColumns[i] = randomCol;
+            }
+            else
+            {
+                int randomCol = Random.Range(0, numColumns);
+                while (!TopHalf_LetUnitEnterColumnFromTail(reserveUnit, randomCol))
+                {
+                    // 如果没成功（放不下），就再来一次
+                    randomCol = Random.Range(0, numColumns);
+                }
+
+                arrCallReserveColumns[i] = randomCol;
+            }
+        }
+
+        // send network message
+        SendCallReserveUnitsDetails(arrCallReserveColumns);
+    }
 }

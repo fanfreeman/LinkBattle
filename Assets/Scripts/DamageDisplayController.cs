@@ -5,7 +5,7 @@ public class DamageDisplayController : MonoBehaviour {
 
 	void RemoveSelf()
     {
-        Debug.Log("destroying self");
+        //Debug.Log("destroying self");
         Destroy(transform.parent.gameObject);
     }
 }
