@@ -30,7 +30,7 @@ public class CameraEffects : MonoBehaviour {
 
         if (camTransform == null)
         {
-            camTransform = GetComponent(typeof(Transform)) as Transform;
+            camTransform = GetComponent<Camera>().transform;
             originalPos = camTransform.localPosition;
         }
     }

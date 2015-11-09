@@ -4901,7 +4901,6 @@ GameObject:
   - 114: {fileID: 1213210209}
   - 114: {fileID: 1213210210}
   - 114: {fileID: 1213210211}
-  - 114: {fileID: 1213210212}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -4976,18 +4975,6 @@ MonoBehaviour:
   topCallReserveUnitsController: {fileID: 1896462699}
   enemyHpHub: {fileID: 977135823}
   playerHpHub: {fileID: 1079632436}
---- !u!114 &1213210212
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1213210207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fd30eb5e64476b419da88cebb0040d6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  damageDisplayPrefab: {fileID: 132768, guid: 4286e743b0883c846aab4d91e0ef9dfa, type: 2}
 --- !u!1 &1233802218
 GameObject:
   m_ObjectHideFlags: 0
@@ -5696,6 +5683,7 @@ GameObject:
   - 92: {fileID: 1784291067}
   - 124: {fileID: 1784291066}
   - 81: {fileID: 1784291065}
+  - 114: {fileID: 1784291070}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -5770,6 +5758,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
+--- !u!114 &1784291070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1784291064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fd30eb5e64476b419da88cebb0040d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageDisplayPrefab: {fileID: 132768, guid: 4286e743b0883c846aab4d91e0ef9dfa, type: 2}
 --- !u!1 &1896462697
 GameObject:
   m_ObjectHideFlags: 0
