@@ -35,6 +35,11 @@ public class UnitStatusController : MonoBehaviour {
         imageHealthBar.enabled = false;
     }
 
+    public void ShowHealth()
+    {
+        imageHealthBar.enabled = true;
+    }
+
     public void SetCountDown(int turnsLeft)
     {
         textCountDown.text = turnsLeft.ToString();

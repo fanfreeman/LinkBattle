@@ -29,12 +29,11 @@ public abstract class Unit : MonoBehaviour {
     UnitAnimationController animController;
 
     float healthCurrent { get; set; }
-    bool isChargeUpLeader { get; set; }
+    //bool isChargeUpLeader { get; set; }
     protected float currentAttackPower { get; set; } // 被health影响的已经蓄力好的攻击力
-    protected float currentMaxAttackPower { get; set; } // 不被health影响的已经蓄力好的攻击力
+    protected float currentFullHealthAttackPower { get; set; } // 不被health影响的已经蓄力好的攻击力
 
     protected List<Unit> attackBuddies;
-    protected Unit buddyTwoInFront;
     ParticleSystem particleHit;
     ParticleSystem particleActivation;
     ParticleSystem particleCountDown;
@@ -47,6 +46,7 @@ public abstract class Unit : MonoBehaviour {
     Transform damageTransform;
 
     private float originalHealth; // 记录单位初始health值，因为heathMax在蓄力时会变
+    private bool isChargeUpFlagHolder = false; // 三连一组的蓄力组里显示status的那个单位
 
     void Awake()
     {
@@ -80,10 +80,21 @@ public abstract class Unit : MonoBehaviour {
 
     void InitUnitStatusControllerIfNeeded()
     {
-        if (unitStatusController == null)
+        if (isActivated)
         {
-            unitStatusCanvas.SetActive(true);
-            unitStatusController = unitStatusCanvas.GetComponent<UnitStatusController>();
+            if (unitStatusController == null && isChargeUpFlagHolder)
+            {
+                unitStatusCanvas.SetActive(true);
+                unitStatusController = unitStatusCanvas.GetComponent<UnitStatusController>();
+            }
+        }
+        else // not activated
+        {
+            if (unitStatusController == null)
+            {
+                unitStatusCanvas.SetActive(true);
+                unitStatusController = unitStatusCanvas.GetComponent<UnitStatusController>();
+            }
         }
     }
 
@@ -217,12 +228,10 @@ public abstract class Unit : MonoBehaviour {
         else Debug.Log("It's the bottom player's turn");
     }
 
-    // 此单位开始蓄力
-    public void ActivateChargeUp(Unit unitInFront, Unit unitTwoInFront, bool isLeader)
+    // 三个连在一起的单位开始蓄力
+    public void ActivateChargeUp(Unit otherBuddy, Unit otherBuddy2, bool isFirst)
     {
         isActivated = true;
-        isChargeUpLeader = isLeader;
-        buddyTwoInFront = unitTwoInFront;
 
         // 显示效果
         if (enableParticles)
@@ -233,38 +242,51 @@ public abstract class Unit : MonoBehaviour {
         shaderSetUpScript.isMouseOverEffectEnabled = false;
 
         // 添加战友
-        AddAttackBuddy(unitInFront);
-        AddAttackBuddy(unitTwoInFront);
+        AddAttackBuddy(otherBuddy);
+        AddAttackBuddy(otherBuddy2);
         
         // 如果不是队长，隐藏health bar
-        if (unitStatusController != null && !isLeader) unitStatusController.HideHealth();
+        if (unitStatusController != null) unitStatusController.HideHealth();
 
-        // 如果是队长，则同时启动另外两个队友
-        if (isLeader)
+        // 剩余回合数
+        numTurnsToChargeUpLeft = numTurnsToChargeUp;
+        
+        // 如果是三个里第一个activate的单位，则给另外两个队友赋值，并activate它们
+        if (isFirst)
         {
+            // 计算最大health
             healthMax *= 3;
-            healthCurrent = healthCurrent + unitInFront.healthCurrent + unitTwoInFront.healthCurrent;
+            otherBuddy.healthMax = healthMax;
+            otherBuddy2.healthMax = healthMax;
 
-            unitInFront.ActivateChargeUp(this, unitTwoInFront, false);
-            unitTwoInFront.ActivateChargeUp(this, unitInFront, false);
+            // 计算实际health
+            healthCurrent = healthCurrent + otherBuddy.healthCurrent + otherBuddy2.healthCurrent;
+            otherBuddy.healthCurrent = healthCurrent;
+            otherBuddy2.healthCurrent = healthCurrent;
 
-            InitUnitStatusControllerIfNeeded();
+            // 计算满血attack power
+            currentFullHealthAttackPower = attackPower / 2;
+            otherBuddy.currentFullHealthAttackPower = currentFullHealthAttackPower;
+            otherBuddy2.currentFullHealthAttackPower = currentFullHealthAttackPower;
 
-            // 计算attack power
-            currentMaxAttackPower = attackPower / 2;
+            // 计算实际attack power
             float healthScaleFactor = healthCurrent / healthMax;
-            currentAttackPower = currentMaxAttackPower * healthScaleFactor;
-            unitStatusController.SetAttackPower(currentAttackPower);
+            currentAttackPower = currentFullHealthAttackPower * healthScaleFactor;
+            otherBuddy.currentAttackPower = currentAttackPower;
+            otherBuddy2.currentAttackPower = currentAttackPower;
 
-            // 显示剩余回合数
-            numTurnsToChargeUpLeft = numTurnsToChargeUp;
-            unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
+            otherBuddy.ActivateChargeUp(this, otherBuddy2, false);
+            otherBuddy2.ActivateChargeUp(this, otherBuddy, false);
         }
-        else
-        {
-            healthMax = unitInFront.healthMax;
-            healthCurrent = unitInFront.healthCurrent;
-        }
+    }
+
+    public void EnableChargeUpStatusDisplay()
+    {
+        isChargeUpFlagHolder = true;
+        InitUnitStatusControllerIfNeeded();
+        unitStatusController.ShowHealth();
+        unitStatusController.SetAttackPower(currentAttackPower);
+        unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
     }
 
     void Deactivate()
@@ -290,23 +312,28 @@ public abstract class Unit : MonoBehaviour {
     // 蓄力tick down
     public int ChargeUpTickDown()
     {
-        if (!isActivated || !isChargeUpLeader) return -1;
+        if (!isActivated || !isChargeUpFlagHolder) return -1; // 只有显示status的单位可以让整组tick down
 
         if (enableParticles)
         {
             particleCountDown.gameObject.SetActive(true);
             particleCountDown.Play();
         }
-
-        Debug.Log(numTurnsToChargeUpLeft);
+        
         numTurnsToChargeUpLeft--;
         unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
 
         // 计算新的attack power
         float healthScaleFactor = healthCurrent / healthMax;
-        currentMaxAttackPower += ((attackPower * 0.5f) / numTurnsToChargeUp);
-        currentAttackPower = currentMaxAttackPower * healthScaleFactor;
+        currentFullHealthAttackPower += ((attackPower * 0.5f) / numTurnsToChargeUp);
+        currentAttackPower = currentFullHealthAttackPower * healthScaleFactor;
         unitStatusController.SetAttackPower(currentAttackPower);
+
+        foreach (Unit buddy in attackBuddies)
+        {
+            buddy.currentFullHealthAttackPower = currentFullHealthAttackPower;
+            buddy.currentAttackPower = currentAttackPower;
+        }
 
         if (numTurnsToChargeUpLeft == 0) StartCoroutine(Attack());
 
@@ -346,23 +373,24 @@ public abstract class Unit : MonoBehaviour {
         
         if (isActivated)
         {
-            if (isChargeUpLeader)
+            currentAttackPower = currentFullHealthAttackPower * scaleFactor;
+
+            if (isChargeUpFlagHolder)
             {
-                currentAttackPower = currentMaxAttackPower * scaleFactor;
                 unitStatusController.SetAttackPower(currentAttackPower);
             }
-            //else // 如果此单位不是charge up leader，则需先找到其leader，并修改leader的attack power
-            //{
-            //    foreach(Unit buddy in attackBuddies)
-            //    {
-            //        if (buddy.isChargeUpLeader)
-            //        {
-            //            buddy.currentAttackPower = buddy.currentMaxAttackPower * scaleFactor;
-            //            buddy.unitStatusController.SetAttackPower(buddy.currentAttackPower);
-            //            break;
-            //        }
-            //    }
-            //}
+
+            // 如果此单位不是charge up leader，则需先找到其leader，并修改leader的attack power
+            foreach (Unit buddy in attackBuddies)
+            {
+                buddy.healthCurrent = healthCurrent;
+                buddy.currentAttackPower = currentAttackPower;
+
+                if (buddy.isChargeUpFlagHolder)
+                {
+                    buddy.unitStatusController.SetAttackPower(currentAttackPower);
+                }
+            }
         }
 
         if (healthCurrent <= 0) StartCoroutine(Die(true));
@@ -452,7 +480,6 @@ public abstract class Unit : MonoBehaviour {
             BattleLoader.instance.MoveToBottomHalfReserveQueue(this);
         else
             BattleLoader.instance.MoveToTopHalfReserveQueue(this);
-        //Destroy(gameObject);
     }
 
     // 回收单位时重置属性
@@ -462,12 +489,12 @@ public abstract class Unit : MonoBehaviour {
         SetHealth(healthMax);
 
         ResetAttackBuddies();
-        isChargeUpLeader = false;
+        isChargeUpFlagHolder = false;
 
         //if (unitStatusController != null)
         //{
-            unitStatusController = null;
-            unitStatusCanvas.SetActive(false);
+        unitStatusController = null;
+        unitStatusCanvas.SetActive(false);
         //}
 
         particleActivation.gameObject.SetActive(false);

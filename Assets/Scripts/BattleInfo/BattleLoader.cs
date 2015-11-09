@@ -59,8 +59,7 @@ public class BattleLoader : MonoBehaviour {
     public void EmptyBottomHalfReserveUnits()
     {
         if (bottomNumberOfReserveUnits == 0) return;
-        BoardManager.instance.CallReserveUnits(bottomReserveUnitsQueue, true);
-        BottomHalf_ClearReserveUnitsQueueAndUseOneMove();
+        StartCoroutine(BoardManager.instance.CallReserveUnits(true));
     }
 
     // 清空补兵queue，并进入下一回合
@@ -72,12 +71,12 @@ public class BattleLoader : MonoBehaviour {
     }
 
     // 补兵
-    public void EmptyTopHalfReserveUnits()
-    {
-        if (topNumberOfReserveUnits == 0) return;
-        BoardManager.instance.CallReserveUnits(topReserveUnitsQueue, false);
-        TopHalf_ClearReserveUnitsQueueAndUseOneMove();
-    }
+    //public void EmptyTopHalfReserveUnits()
+    //{
+    //    if (topNumberOfReserveUnits == 0) return;
+    //    StartCoroutine(BoardManager.instance.CallReserveUnits(false));
+    //    TopHalf_ClearReserveUnitsQueueAndUseOneMove();
+    //}
 
     // 清空补兵queue，并进入下一回合
     public void TopHalf_ClearReserveUnitsQueueAndUseOneMove()

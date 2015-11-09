@@ -306,8 +306,8 @@ public class BoardManager : Photon.MonoBehaviour {
     public void TopHalf_CheckFormationForUnit(Unit unit)
     {
         if (unit.boardY <= 1) return;
-        Unit unitInFront = TopHalf_GetUnitInFrontOfUnit(unit);
-        Unit unitTwoInFront = TopHalf_GetUnitTwoInFrontOfUnit(unit);
+        Unit unitInFront = TopHalf_GetUnitInFrontOfUnit(unit); // 中间的单位
+        Unit unitTwoInFront = TopHalf_GetUnitTwoInFrontOfUnit(unit); // 最靠近队首的单位
         if (unitInFront != null && unitTwoInFront != null)
         {
             // 确保三个单位为同一兵种
@@ -316,7 +316,8 @@ public class BoardManager : Photon.MonoBehaviour {
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
-                unitTwoInFront.ActivateChargeUp(unitInFront, unit, true);
+                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
+                unitTwoInFront.EnableChargeUpStatusDisplay(); // 队首单位显示status
             }
         }
     }
@@ -325,8 +326,8 @@ public class BoardManager : Photon.MonoBehaviour {
     public void BottomHalf_CheckFormationForUnit(Unit unit)
     {
         if (unit.boardY <= 1) return;
-        Unit unitInFront = BottomHalf_GetUnitInFrontOfUnit(unit);
-        Unit unitTwoInFront = BottomHalf_GetUnitTwoInFrontOfUnit(unit);
+        Unit unitInFront = BottomHalf_GetUnitInFrontOfUnit(unit); // 中间的单位
+        Unit unitTwoInFront = BottomHalf_GetUnitTwoInFrontOfUnit(unit); // 最靠近队首的单位
         if (unitInFront != null && unitTwoInFront != null)
         {
             // 确保三个单位为同一兵种
@@ -335,7 +336,8 @@ public class BoardManager : Photon.MonoBehaviour {
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
             {
-                unitTwoInFront.ActivateChargeUp(unitInFront, unit, true); // 组成三连formation
+                unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
+                unit.EnableChargeUpStatusDisplay(); // 队尾单位显示status
             }
         }
     }
@@ -716,30 +718,40 @@ public class BoardManager : Photon.MonoBehaviour {
     void SyncCallReserveUnitsDetails(int[] arrCallReserveColumns)
     {
         Debug.Log("remote client calling reserve units...");
+        if (GameManager.instance.playersTurn)
+        {
+            throw new System.Exception("Remote should not call reserve units while it is our turn");
+        }
 
+        StartCoroutine(RemoteCallReserveUnits(arrCallReserveColumns));
+    }
+
+    IEnumerator RemoteCallReserveUnits(int[] arrCallReserveColumns)
+    {
         List<Unit> listOfReserveUnits = BattleLoader.instance.topReserveUnitsQueue;
         int numReserveUnits = listOfReserveUnits.Count;
         if (numReserveUnits != arrCallReserveColumns.Length) throw new System.Exception("Reserve Units List and Details Array Size Mismatch");
         for (int i = 0; i < numReserveUnits; i++)
         {
             Unit reserveUnit = listOfReserveUnits[i];
-            if (GameManager.instance.playersTurn)
-            {
-                    throw new System.Exception("Remote should not call reserve units while it is our turn");
-                }
-            else
-            {
-                TopHalf_LetUnitEnterColumnFromTail(reserveUnit, arrCallReserveColumns[i]);
-            }
+            TopHalf_LetUnitEnterColumnFromTail(reserveUnit, arrCallReserveColumns[i]);
+            yield return null; // 等待一下下
         }
 
+        // 可以清空reserveUnitsQueue了
         BattleLoader.instance.TopHalf_ClearReserveUnitsQueueAndUseOneMove();
     }
     // EOF Network Code
 
     // 从回收的池子中补兵
-    public void CallReserveUnits(List<Unit> listOfReserveUnits, bool isBottomHalf)
+    public IEnumerator CallReserveUnits(bool isBottomHalf)
     {
+        List<Unit> listOfReserveUnits;
+        if (isBottomHalf)
+            listOfReserveUnits = BattleLoader.instance.bottomReserveUnitsQueue;
+        else
+            listOfReserveUnits = BattleLoader.instance.topReserveUnitsQueue;
+
         int numReserveUnits = listOfReserveUnits.Count;
         int[] arrCallReserveColumns = new int[numReserveUnits]; // network code
         for (int i = 0; i < numReserveUnits; i++)
@@ -767,7 +779,12 @@ public class BoardManager : Photon.MonoBehaviour {
 
                 arrCallReserveColumns[i] = randomCol;
             }
+
+            yield return new WaitForSeconds(0.1f); // 等待一下下
         }
+
+        // 可以清空reserveUnitsQueue了
+        BattleLoader.instance.BottomHalf_ClearReserveUnitsQueueAndUseOneMove();
 
         // send network message
         SendCallReserveUnitsDetails(arrCallReserveColumns);
