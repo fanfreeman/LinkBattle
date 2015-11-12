@@ -144,6 +144,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridTop[randomIndex].SetPositionValues((int)position.x, (int)position.y);
                 unitGridTop[randomIndex].SetIsAtBottom(false);
                 unitGridTop[randomIndex].SetSortingLayer();
+                unitGridTop[randomIndex].AssignNewId();
             }
             else
             {
@@ -156,6 +157,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridBottom[randomIndex].SetPositionValues((int)position.x, (int)position.y);
                 unitGridBottom[randomIndex].SetIsAtBottom(true);
                 unitGridBottom[randomIndex].SetSortingLayer();
+                unitGridBottom[randomIndex].AssignNewId();
             }
         }
     }
@@ -570,9 +572,24 @@ public class BoardManager : Photon.MonoBehaviour {
         }
     }
 
-    // 显示棋盘，测试用
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.B))
+        {
+            PrintGrids();
+        }
+
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            PrintGridsIds();
+        }
+    }
+
+    // 显示棋盘单位兵种，测试用
     void PrintGrids()
     {
+        Debug.Log("Printing Board...");
+
         // top
         string output = "";
         for (int y = numRowsPerSide - 1; y >= 0; y--)
@@ -580,7 +597,21 @@ public class BoardManager : Photon.MonoBehaviour {
             string row = "";
             for (int x = 0; x < numColumns; x++)
             {
-                if (TopHalf_GetUnitAtPosition(x, y) != null) row += "U ";
+                Unit unit = TopHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    switch (unit.GetTypeString())
+                    {
+                        case "Archer":
+                            row += "A ";
+                            break;
+                        case "Knight":
+                            row += "K ";
+                            break;
+                        default:
+                            throw new System.Exception("WTF is this unit?");
+                    }
+                }
                 else row += "o ";
             }
             output += row + "\n";
@@ -594,8 +625,66 @@ public class BoardManager : Photon.MonoBehaviour {
             string row = "";
             for (int x = 0; x < numColumns; x++)
             {
-                if (BottomHalf_GetUnitAtPosition(x, y) != null) row += "U ";
+                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    switch (unit.GetTypeString())
+                    {
+                        case "Archer":
+                            row += "A ";
+                            break;
+                        case "Knight":
+                            row += "K ";
+                            break;
+                        default:
+                            throw new System.Exception("WTF is this unit?");
+                    }
+                }
                 else row += "o ";
+            }
+            output += row + "\n";
+        }
+        Debug.Log(output);
+    }
+
+    // 显示棋盘单位id，测试用
+    void PrintGridsIds()
+    {
+        Debug.Log("Printing Board Ids...");
+
+        // top
+        string output = "";
+        for (int y = numRowsPerSide - 1; y >= 0; y--)
+        {
+            string row = "";
+            for (int x = 0; x < numColumns; x++)
+            {
+                Unit unit = TopHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    if (unit.id < 10) row += "0" + unit.id.ToString() + " ";
+                    else row += unit.id.ToString() + " ";
+                }
+                else row += "oo ";
+            }
+            output += row + "\n";
+        }
+        Debug.Log(output);
+
+        // bottom
+        output = "";
+        for (int y = 0; y < numRowsPerSide; y++)
+        {
+            string row = "";
+            for (int x = 0; x < numColumns; x++)
+            {
+                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    if (unit.id < 10) row += "0" + unit.id.ToString() + " ";
+                    else row += unit.id.ToString() + " ";
+                }
+                else row += "oo ";
             }
             output += row + "\n";
         }
@@ -653,7 +742,7 @@ public class BoardManager : Photon.MonoBehaviour {
     // 游戏初始时，一端发送棋盘布局给另一端
     void SendBoardState()
     {
-        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom));
+        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitIds(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom), SerializeUnitGridAsUnitIds(unitGridBottom));
     }
 
     int[] SerializeUnitGridAsUnitTypes(List<Unit> unitGrid)
@@ -668,14 +757,26 @@ public class BoardManager : Photon.MonoBehaviour {
         return arrUnitGrid;
     }
 
+    int[] SerializeUnitGridAsUnitIds(List<Unit> unitGrid)
+    {
+        int[] arrUnitGrid = new int[unitGrid.Count];
+        for (int index = 0; index < unitGrid.Count; index++)
+        {
+            Unit unit = unitGrid[index];
+            if (unit != null) arrUnitGrid[index] = unit.id;
+            else arrUnitGrid[index] = -1;
+        }
+        return arrUnitGrid;
+    }
+
     [PunRPC]
-    void SyncBoard(int[] myGrid, int[] enemyGrid)
+    void SyncBoard(int[] myGridOfUnitTypes, int[] myGridOfUnitIds, int[] enemyGridOfUnitTypes, int[] enemyGridOfUnitIds)
     {
         Debug.Log("syncing board...");
 
-        for (int index = 0; index < myGrid.Length; index++)
+        for (int index = 0; index < myGridOfUnitTypes.Length; index++)
         {
-            int unitType = myGrid[index];
+            int unitType = myGridOfUnitTypes[index];
             if (unitType >= 0) // skip empty spaces
             {
                 Vector3 coordinates = gridCoordinatesBottom[index];
@@ -685,12 +786,13 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridBottom[index].SetPositionValues((int)position.x, (int)position.y);
                 unitGridBottom[index].SetIsAtBottom(true);
                 unitGridBottom[index].SetSortingLayer();
+                unitGridBottom[index].id = myGridOfUnitIds[index];
             }
         }
 
-        for (int index = 0; index < enemyGrid.Length; index++)
+        for (int index = 0; index < enemyGridOfUnitTypes.Length; index++)
         {
-            int unitType = enemyGrid[index];
+            int unitType = enemyGridOfUnitTypes[index];
             if (unitType >= 0) // skip empty spaces
             {
                 Vector3 coordinates = gridCoordinatesTop[index];
@@ -700,6 +802,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridTop[index].SetPositionValues((int)position.x, (int)position.y);
                 unitGridTop[index].SetIsAtBottom(false);
                 unitGridTop[index].SetSortingLayer();
+                unitGridTop[index].id = enemyGridOfUnitIds[index];
             }
         }
 
@@ -708,14 +811,14 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     // 同步补兵具体细节
-    void SendCallReserveUnitsDetails(int[] arrCallReserveColumns)
+    void SendCallReserveUnitsDetails(Dictionary<int, int> callReserveUnitsColumnsToIdsDict)
     {
-        photonView.RPC("SyncCallReserveUnitsDetails", PhotonTargets.Others, arrCallReserveColumns);
+        photonView.RPC("SyncCallReserveUnitsDetails", PhotonTargets.Others, callReserveUnitsColumnsToIdsDict);
     }
 
     // 远端client根据补兵细节完成补兵
     [PunRPC]
-    void SyncCallReserveUnitsDetails(int[] arrCallReserveColumns)
+    void SyncCallReserveUnitsDetails(Dictionary<int, int> callReserveUnitIdsToColumnsDict)
     {
         Debug.Log("remote client calling reserve units...");
         if (GameManager.instance.playersTurn)
@@ -723,19 +826,19 @@ public class BoardManager : Photon.MonoBehaviour {
             throw new System.Exception("Remote should not call reserve units while it is our turn");
         }
 
-        StartCoroutine(RemoteCallReserveUnits(arrCallReserveColumns));
+        RemoteCallReserveUnits(callReserveUnitIdsToColumnsDict);
     }
 
-    IEnumerator RemoteCallReserveUnits(int[] arrCallReserveColumns)
+    void RemoteCallReserveUnits(Dictionary<int, int> callReserveUnitIdsToColumnsDict)
     {
-        List<Unit> listOfReserveUnits = BattleLoader.instance.topReserveUnitsQueue;
-        int numReserveUnits = listOfReserveUnits.Count;
-        if (numReserveUnits != arrCallReserveColumns.Length) throw new System.Exception("Reserve Units List and Details Array Size Mismatch");
+        Unit[] listOfReserveUnits = BattleLoader.instance.topReserveUnitsQueue;
+        int numReserveUnits = BattleLoader.instance.topNumberOfReserveUnits;
+        if (numReserveUnits != callReserveUnitIdsToColumnsDict.Count) throw new System.Exception("Reserve Units List and Details Dictionary Size Mismatch");
         for (int i = 0; i < numReserveUnits; i++)
         {
             Unit reserveUnit = listOfReserveUnits[i];
-            TopHalf_LetUnitEnterColumnFromTail(reserveUnit, arrCallReserveColumns[i]);
-            yield return null; // 等待一下下
+            int column = callReserveUnitIdsToColumnsDict[reserveUnit.id];
+            TopHalf_LetUnitEnterColumnFromTail(reserveUnit, column);
         }
 
         // 可以清空reserveUnitsQueue了
@@ -744,49 +847,29 @@ public class BoardManager : Photon.MonoBehaviour {
     // EOF Network Code
 
     // 从回收的池子中补兵
-    public IEnumerator CallReserveUnits(bool isBottomHalf)
+    public void BottomHalf_CallReserveUnits()
     {
-        List<Unit> listOfReserveUnits;
-        if (isBottomHalf)
-            listOfReserveUnits = BattleLoader.instance.bottomReserveUnitsQueue;
-        else
-            listOfReserveUnits = BattleLoader.instance.topReserveUnitsQueue;
-
-        int numReserveUnits = listOfReserveUnits.Count;
-        int[] arrCallReserveColumns = new int[numReserveUnits]; // network code
+        Unit[] arrReserveUnits = BattleLoader.instance.bottomReserveUnitsQueue;
+        int numReserveUnits = BattleLoader.instance.bottomNumberOfReserveUnits;
+        //int[] arrCallReserveColumns = new int[numReserveUnits]; // network code
+        Dictionary<int, int> callReserveUnitIdsToColumnsDict = new Dictionary<int, int>();
         for (int i = 0; i < numReserveUnits; i++)
         {
-            Unit reserveUnit = listOfReserveUnits[i];
-            if (isBottomHalf)
+            Unit reserveUnit = arrReserveUnits[i];
+            int randomCol = Random.Range(0, numColumns);
+            while (!BottomHalf_LetUnitEnterColumnFromTail(reserveUnit, randomCol))
             {
-                int randomCol = Random.Range(0, numColumns);
-                while (!BottomHalf_LetUnitEnterColumnFromTail(reserveUnit, randomCol))
-                {
-                    // 如果没成功（放不下），就再来一次
-                    randomCol = Random.Range(0, numColumns);
-                }
-
-                arrCallReserveColumns[i] = randomCol;
-            }
-            else
-            {
-                int randomCol = Random.Range(0, numColumns);
-                while (!TopHalf_LetUnitEnterColumnFromTail(reserveUnit, randomCol))
-                {
-                    // 如果没成功（放不下），就再来一次
-                    randomCol = Random.Range(0, numColumns);
-                }
-
-                arrCallReserveColumns[i] = randomCol;
+                // 如果没成功（放不下），就再来一次
+                randomCol = Random.Range(0, numColumns);
             }
 
-            yield return new WaitForSeconds(0.1f); // 等待一下下
+            callReserveUnitIdsToColumnsDict.Add(reserveUnit.id, randomCol);
         }
 
         // 可以清空reserveUnitsQueue了
         BattleLoader.instance.BottomHalf_ClearReserveUnitsQueueAndUseOneMove();
 
         // send network message
-        SendCallReserveUnitsDetails(arrCallReserveColumns);
+        SendCallReserveUnitsDetails(callReserveUnitIdsToColumnsDict);
     }
 }

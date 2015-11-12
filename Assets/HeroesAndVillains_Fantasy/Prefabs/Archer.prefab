@@ -1159,12 +1159,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: .376267731, b: .0955882072, a: 1}
-  m_RaycastTarget: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 87778555f6eb0a34fbc1a92ddf48c21a, type: 3}
     m_FontSize: 50
@@ -1189,7 +1183,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3763a82043c2e854ebf184ab8b525643, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageDisplayPrefab: {fileID: 132768, guid: 4286e743b0883c846aab4d91e0ef9dfa, type: 2}
   healthMax: 100
   numTurnsToChargeUp: 1
   attackPower: 250
@@ -1211,12 +1204,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 1, b: .255172253, a: 1}
-  m_RaycastTarget: 0
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
@@ -1237,12 +1224,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: .29411763, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-    m_TypeName: UnityEngine.UI.MaskableGraphic+CullStateChangedEvent, UnityEngine.UI,
-      Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_FontData:
     m_Font: {fileID: 12800000, guid: 87778555f6eb0a34fbc1a92ddf48c21a, type: 3}
     m_FontSize: 60
@@ -1268,7 +1249,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shader: {fileID: 4800000, guid: 5fd8121522883594aa4f0e887ab24990, type: 3}
-  body: {fileID: 100002}
   isMouseOverEffectEnabled: 1
 --- !u!114 &11451248
 MonoBehaviour:

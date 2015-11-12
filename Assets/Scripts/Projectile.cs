@@ -65,6 +65,7 @@ public class Projectile : MonoBehaviour {
         Destroy(gameObject);
     }
     
+    // projectile碰撞检测
     void OnTriggerEnter2D(Collider2D other)
     {
         Unit targetUnit = other.GetComponent<Unit>();
@@ -85,6 +86,7 @@ public class Projectile : MonoBehaviour {
             return;
         }
 
+        // 检测是否撞到单位
         if ((belongsToBottomPlayer && !targetUnit.isAtBottom) || (!belongsToBottomPlayer && targetUnit.isAtBottom))
         {
             //Debug.Log("shot " + other.gameObject.name);
