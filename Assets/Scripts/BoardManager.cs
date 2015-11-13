@@ -40,7 +40,7 @@ public class BoardManager : Photon.MonoBehaviour {
     public enum UnitTypes : int {
         Archer = 0,
         Knight = 1,
-        mage = 2
+        Mage = 2
     };
 
     // 初始化棋盘
@@ -609,6 +609,9 @@ public class BoardManager : Photon.MonoBehaviour {
                         case "Knight":
                             row += "K ";
                             break;
+                        case "Mage":
+                            row += "M ";
+                        break;
                         default:
                             throw new System.Exception("WTF is this unit?");
                     }
@@ -637,6 +640,9 @@ public class BoardManager : Photon.MonoBehaviour {
                         case "Knight":
                             row += "K ";
                             break;
+                        case "Mage":
+                        row += "M ";
+                        break;
                         default:
                             throw new System.Exception("WTF is this unit?");
                     }

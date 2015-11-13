@@ -187,7 +187,6 @@ public class GameManager : Photon.PunBehaviour
         {
             selectorBottom.SetActive(true);
             BattleLoader.instance.EnableBottomCallReserveButton();
-
         }
         else
         {
