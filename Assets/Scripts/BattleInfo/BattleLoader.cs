@@ -18,11 +18,11 @@ public class BattleLoader : MonoBehaviour {
     private StatusBarController enemyHpHubController;
     private StatusBarController playerHpHubController;
 
-    public List<Unit> bottomReserveUnitsQueue;
-    public List<Unit> topReserveUnitsQueue;
+    public Unit[] bottomReserveUnitsQueue;
+    public Unit[] topReserveUnitsQueue;
 
-    private int bottomNumberOfReserveUnits = 0;
-    private int topNumberOfReserveUnits = 0;
+    public int bottomNumberOfReserveUnits = 0;
+    public int topNumberOfReserveUnits = 0;
 
     // Use this for initialization
 	public void SetUpBattleLoader ()
@@ -32,8 +32,8 @@ public class BattleLoader : MonoBehaviour {
             this.playerHpHubController = playerHpHub.GetComponent<StatusBarController>();
             this.playerHpHubController.InitStatus(bottomHp, bottomHp);
             this.enemyHpHubController.InitStatus(topHp, topHp);
-            this.bottomReserveUnitsQueue = new List<Unit>();
-            this.topReserveUnitsQueue = new List<Unit>();
+            this.bottomReserveUnitsQueue = new Unit[20];
+            this.topReserveUnitsQueue = new Unit[20];
             bottomCallReserveUnitsController.SetNumberOfReserveUnits(0);
             topCallReserveUnitsController.SetNumberOfReserveUnits(0);
 
@@ -43,15 +43,19 @@ public class BattleLoader : MonoBehaviour {
             Destroy(gameObject);
     }
 
-    public void EnableBottomCallReserveButton()
+    public void DisableCallReserveButtons()
     {
         topCallReserveUnitsController.clickTrigger.interactable = false;
+        bottomCallReserveUnitsController.clickTrigger.interactable = false;
+    }
+
+    public void EnableBottomCallReserveButton()
+    {
         if (bottomNumberOfReserveUnits > 0) bottomCallReserveUnitsController.clickTrigger.interactable = true;
     }
 
     public void EnableTopCallReserveButton()
     {
-        bottomCallReserveUnitsController.clickTrigger.interactable = false;
         if (topNumberOfReserveUnits > 0) topCallReserveUnitsController.clickTrigger.interactable = true;
     }
 
@@ -59,15 +63,23 @@ public class BattleLoader : MonoBehaviour {
     public void EmptyBottomHalfReserveUnits()
     {
         if (bottomNumberOfReserveUnits == 0) return;
-        StartCoroutine(BoardManager.instance.CallReserveUnits(true));
+        BoardManager.instance.BottomHalf_CallReserveUnits();
     }
 
     // 清空补兵queue，并进入下一回合
     public void BottomHalf_ClearReserveUnitsQueueAndUseOneMove()
     {
-        bottomReserveUnitsQueue.Clear();
+        ClearReserveUnitsQueue(bottomReserveUnitsQueue);
         bottomNumberOfReserveUnits = 0;
         GameManager.instance.UseOneMove();
+    }
+
+    void ClearReserveUnitsQueue(Unit[] queue)
+    {
+        for (int i = 0; i < queue.Length; i++)
+        {
+            queue[i] = null;
+        }
     }
 
     // 补兵
@@ -81,7 +93,7 @@ public class BattleLoader : MonoBehaviour {
     // 清空补兵queue，并进入下一回合
     public void TopHalf_ClearReserveUnitsQueueAndUseOneMove()
     {
-        topReserveUnitsQueue.Clear();
+        ClearReserveUnitsQueue(topReserveUnitsQueue);
         topNumberOfReserveUnits = 0;
         GameManager.instance.UseOneMove();
     }
@@ -90,7 +102,7 @@ public class BattleLoader : MonoBehaviour {
     {
         recycledUnit.ResetUnitStatusForRecycling();
         PutRecycledUnitOutOfStage(recycledUnit);
-        bottomReserveUnitsQueue.Add(recycledUnit);
+        bottomReserveUnitsQueue[bottomNumberOfReserveUnits] = recycledUnit;
         bottomNumberOfReserveUnits++;
 
         // 更新数字显示
@@ -112,7 +124,7 @@ public class BattleLoader : MonoBehaviour {
     {
         recycledUnit.ResetUnitStatusForRecycling();
         PutRecycledUnitOutOfStage(recycledUnit, false);
-        topReserveUnitsQueue.Add(recycledUnit);
+        topReserveUnitsQueue[topNumberOfReserveUnits] = recycledUnit;
         topNumberOfReserveUnits++;
 
         // 更新数字显示

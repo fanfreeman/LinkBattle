@@ -5,6 +5,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public abstract class Unit : MonoBehaviour {
+
+    public int id { get; set; }
     
     public float healthMax = 100f;
     public int numTurnsToChargeUp = 1;
@@ -36,7 +38,6 @@ public abstract class Unit : MonoBehaviour {
     UnitAnimationController animController;
 
     float healthCurrent { get; set; }
-    //bool isChargeUpLeader { get; set; }
     protected float currentAttackPower { get; set; } // 被health影响的已经蓄力好的攻击力
     protected float currentFullHealthAttackPower { get; set; } // 不被health影响的已经蓄力好的攻击力
 
@@ -54,11 +55,15 @@ public abstract class Unit : MonoBehaviour {
 
     private float originalHealth; // 记录单位初始health值，因为heathMax在蓄力时会变
     private bool isChargeUpFlagHolder = false; // 三连一组的蓄力组里显示status的那个单位
+    private BoxCollider2D myCollider;
+
+    private static int currentUnitIdToAssign = 0;
 
     public String typeString = "undefine";
 
     protected virtual void Awake()
     {
+        myCollider = GetComponent<BoxCollider2D>();
         unitFeaturesTransform = transform.Find("UnitFeatures");
         damageTransform = unitFeaturesTransform.Find("DamageTransform");
 
@@ -394,7 +399,6 @@ public abstract class Unit : MonoBehaviour {
         if (val < 0) val = 0;
         healthCurrent = val;
         float scaleFactor = healthCurrent / healthMax;
-        if (unitStatusController != null) unitStatusController.SetHealthScale(scaleFactor);
         
         if (isActivated)
         {
@@ -402,10 +406,11 @@ public abstract class Unit : MonoBehaviour {
 
             if (isChargeUpFlagHolder)
             {
+                unitStatusController.SetHealthScale(scaleFactor);
                 unitStatusController.SetAttackPower(currentAttackPower);
             }
 
-            // 如果此单位不是charge up leader，则需先找到其leader，并修改leader的attack power
+            // 还需要修改蓄力组里其它成员的数值
             foreach (Unit buddy in attackBuddies)
             {
                 buddy.healthCurrent = healthCurrent;
@@ -413,9 +418,14 @@ public abstract class Unit : MonoBehaviour {
 
                 if (buddy.isChargeUpFlagHolder)
                 {
+                    buddy.unitStatusController.SetHealthScale(scaleFactor);
                     buddy.unitStatusController.SetAttackPower(currentAttackPower);
                 }
             }
+        }
+        else // not activated
+        {
+            if (unitStatusController != null) unitStatusController.SetHealthScale(scaleFactor);
         }
 
         if (healthCurrent <= 0) StartCoroutine(Die(true));
@@ -438,7 +448,6 @@ public abstract class Unit : MonoBehaviour {
             BattleLoader.instance.MoveToBottomHalfReserveQueue(this);
         else
             BattleLoader.instance.MoveToTopHalfReserveQueue(this);
-        //Destroy(gameObject);
     }
 
     // 立刻从棋盘上清除此单位
@@ -449,7 +458,6 @@ public abstract class Unit : MonoBehaviour {
             BattleLoader.instance.MoveToBottomHalfReserveQueue(this);
         else
             BattleLoader.instance.MoveToTopHalfReserveQueue(this);
-        //Destroy(gameObject);
     }
 
     // 单位接收伤害；返回实际造成的伤害值
@@ -478,8 +486,10 @@ public abstract class Unit : MonoBehaviour {
 
     IEnumerator Die(bool isDeathLeader)
     {
+        myCollider.enabled = false; // 避免已经挂掉的单位据需和projectile碰撞
+
         // 检查是否是正在蓄力的单位组，如是则播放大爆炸粒子效果
-        if (isDeathLeader && attackBuddies.Count > 0)
+        if (isActivated && isDeathLeader && attackBuddies.Count > 0)
         {
             foreach (Unit buddy in attackBuddies)
             {
@@ -510,6 +520,8 @@ public abstract class Unit : MonoBehaviour {
     // 回收单位时重置属性
     public void ResetUnitStatusForRecycling()
     {
+        Deactivate();
+        myCollider.enabled = true;
         healthMax = originalHealth;
         SetHealth(healthMax);
 
@@ -518,11 +530,9 @@ public abstract class Unit : MonoBehaviour {
         //仅有领头单位开启FSM
         playMakerFSM.enabled = false;
 
-        //if (unitStatusController != null)
-        //{
+        if (unitStatusController != null) unitStatusController.Clear();
         unitStatusController = null;
         unitStatusCanvas.SetActive(false);
-        //}
 
         particleActivation.gameObject.SetActive(false);
         particleCountDown.gameObject.SetActive(false);
@@ -531,5 +541,12 @@ public abstract class Unit : MonoBehaviour {
 
         //重新开启mouseover高亮
         shaderSetUpScript.isMouseOverEffectEnabled = true;
+    }
+
+    // 给此单位赋id值
+    public void AssignNewId()
+    {
+        id = currentUnitIdToAssign;
+        currentUnitIdToAssign++;
     }
 }

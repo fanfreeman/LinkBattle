@@ -49,4 +49,10 @@ public class UnitStatusController : MonoBehaviour {
     {
         textAttackPower.text = Mathf.Round(attackPower).ToString();
     }
+
+    public void Clear()
+    {
+        textCountDown.text = "";
+        textAttackPower.text = "";
+    }
 }
