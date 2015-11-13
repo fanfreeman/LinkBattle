@@ -43,15 +43,19 @@ public class BattleLoader : MonoBehaviour {
             Destroy(gameObject);
     }
 
-    public void EnableBottomCallReserveButton()
+    public void DisableCallReserveButtons()
     {
         topCallReserveUnitsController.clickTrigger.interactable = false;
+        bottomCallReserveUnitsController.clickTrigger.interactable = false;
+    }
+
+    public void EnableBottomCallReserveButton()
+    {
         if (bottomNumberOfReserveUnits > 0) bottomCallReserveUnitsController.clickTrigger.interactable = true;
     }
 
     public void EnableTopCallReserveButton()
     {
-        bottomCallReserveUnitsController.clickTrigger.interactable = false;
         if (topNumberOfReserveUnits > 0) topCallReserveUnitsController.clickTrigger.interactable = true;
     }
 

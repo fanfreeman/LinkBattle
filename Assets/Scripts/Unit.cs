@@ -461,7 +461,6 @@ public abstract class Unit : MonoBehaviour {
 
     IEnumerator Die(bool isDeathLeader)
     {
-        Debug.Log("lol die");
         myCollider.enabled = false; // 避免已经挂掉的单位据需和projectile碰撞
 
         // 检查是否是正在蓄力的单位组，如是则播放大爆炸粒子效果

@@ -93,7 +93,7 @@ public class Projectile : MonoBehaviour {
             remainingDamage -= (targetUnit.TakeDamage(remainingDamage));
             if (remainingDamage <= 0) // 此projectile耗尽后销毁此projectile
             {
-                Debug.Log("consolidate: projectile used up");
+                //Debug.Log("consolidate: projectile used up");
 
                 DestroySelf();
             }

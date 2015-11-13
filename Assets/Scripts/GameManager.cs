@@ -139,6 +139,11 @@ public class GameManager : Photon.PunBehaviour
         }
     }
 
+    public int GetMoveNumber()
+    {
+        return 3 - movesLeftThisTurn;
+    }
+
     void SetNumberOfMovesText()
     {
         if (playersTurn) moveTextBottom.text = movesLeftThisTurn.ToString();
@@ -153,6 +158,7 @@ public class GameManager : Photon.PunBehaviour
         SetNumberOfMovesText();
         RevokeControl();
         turnMessageController.Show();
+        BattleLoader.instance.DisableCallReserveButtons();
     }
 
     void GoToEnemyTurn()
@@ -181,11 +187,15 @@ public class GameManager : Photon.PunBehaviour
         {
             selectorBottom.SetActive(true);
             BattleLoader.instance.EnableBottomCallReserveButton();
+
         }
         else
         {
             selectorTop.SetActive(true);
             BattleLoader.instance.EnableTopCallReserveButton();
+
+            // FOR DEBUGGING ONLY check board sync integrity
+            //BoardManager.instance.CheckGameHealth();
         }
 
         canMove = true;
