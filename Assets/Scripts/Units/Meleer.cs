@@ -2,25 +2,19 @@
 using System.Collections;
 using System;
 
-public class Knight : Unit
+public class Meleer : Unit
 {
     public GameObject projectilePrefab;
 
-    public override BoardManager.UnitTypes GetUnitType()
-    {
-        return BoardManager.UnitTypes.Knight;
-    }
+    protected override void Awake() {
 
-    public override string GetTypeString()
-    {
-        return "Knight";
+        base.Awake();
     }
 
     protected override IEnumerator Attack()
     {
         // 播放攻击动画以及腾出棋盘上的位置
         StartCoroutine(base.Attack());
-
         yield return new WaitForSeconds(1f);
 
         // 进攻
@@ -31,11 +25,13 @@ public class Knight : Unit
     void LaunchSelf()
     {
         GameObject projectileObj = Instantiate(projectilePrefab, transform.position, Quaternion.identity) as GameObject;
-        Projectile projectile = projectileObj.GetComponent<Projectile>();
+
+        ProjectileMeleer projectile = projectileObj.GetComponent<ProjectileMeleer>();
+        projectile.SetMeleerObject(gameObject);
         projectile.Init(isAtBottom, boardX, currentAttackPower);
 
         // 立刻清理此单位以及其队友
-        foreach (Knight unit in attackBuddies)
+        foreach (Meleer unit in attackBuddies)
         {
             unit.RemoveImmediately();
         }

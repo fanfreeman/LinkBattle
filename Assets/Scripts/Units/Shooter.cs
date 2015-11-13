@@ -2,18 +2,12 @@
 using System.Collections;
 using System;
 
-public class Archer : Unit {
+public class Shooter : Unit {
 
     public GameObject projectilePrefab;
 
-    public override BoardManager.UnitTypes GetUnitType()
-    {
-        return BoardManager.UnitTypes.Archer;
-    }
-
-    public override string GetTypeString()
-    {
-        return "Archer";
+    protected override void Awake() {
+        base.Awake();
     }
 
     protected override IEnumerator Attack()
@@ -29,7 +23,7 @@ public class Archer : Unit {
         yield return new WaitForSeconds(0.5f);
         
         // 清理此单位以及其队友
-        foreach (Archer unit in attackBuddies)
+        foreach (Shooter unit in attackBuddies)
         {
             StartCoroutine(unit.RemoveWithAnimation());
         }

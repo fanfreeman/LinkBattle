@@ -1,14 +1,18 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 public abstract class Unit : MonoBehaviour {
     
     public float healthMax = 100f;
     public int numTurnsToChargeUp = 1;
-    int numTurnsToChargeUpLeft;
+    private int numTurnsToChargeUpLeft;
     public float attackPower = 250f; // 整个小组蓄力满之后的攻击力
+
+    private PlayMakerFSM playMakerFSM;
+
 
     [HideInInspector]
     public int boardX;
@@ -22,8 +26,11 @@ public abstract class Unit : MonoBehaviour {
     protected static int outOfTopEdgeY = 12;
     protected static int outOfBottomEdgeY = -12;
 
-    public abstract string GetTypeString();
-    public abstract BoardManager.UnitTypes GetUnitType();
+    //select unit type by someone not a coder
+    public BoardManager.UnitTypes unitType;
+    public BoardManager.UnitTypes GetUnitType(){
+        return unitType;
+    }
 
     ShaderSetUp shaderSetUpScript;
     UnitAnimationController animController;
@@ -48,7 +55,9 @@ public abstract class Unit : MonoBehaviour {
     private float originalHealth; // 记录单位初始health值，因为heathMax在蓄力时会变
     private bool isChargeUpFlagHolder = false; // 三连一组的蓄力组里显示status的那个单位
 
-    void Awake()
+    public String typeString = "undefine";
+
+    protected virtual void Awake()
     {
         unitFeaturesTransform = transform.Find("UnitFeatures");
         damageTransform = unitFeaturesTransform.Find("DamageTransform");
@@ -76,6 +85,14 @@ public abstract class Unit : MonoBehaviour {
         }
         
         unitStatusCanvas = unitFeaturesTransform.Find("UnitStatusCanvas").gameObject;
+
+        //FSM scrip ref
+        playMakerFSM = gameObject.GetComponent<PlayMakerFSM>();
+    }
+
+    public string GetTypeString()
+    {
+        return typeString;
     }
 
     void InitUnitStatusControllerIfNeeded()
@@ -254,6 +271,7 @@ public abstract class Unit : MonoBehaviour {
         // 如果是三个里第一个activate的单位，则给另外两个队友赋值，并activate它们
         if (isFirst)
         {
+
             // 计算最大health
             healthMax *= 3;
             otherBuddy.healthMax = healthMax;
@@ -282,6 +300,9 @@ public abstract class Unit : MonoBehaviour {
 
     public void EnableChargeUpStatusDisplay()
     {
+        //第一个开启FSM
+        playMakerFSM.enabled = true;
+
         isChargeUpFlagHolder = true;
         InitUnitStatusControllerIfNeeded();
         unitStatusController.ShowHealth();
@@ -323,6 +344,7 @@ public abstract class Unit : MonoBehaviour {
         numTurnsToChargeUpLeft--;
         unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
 
+
         // 计算新的attack power
         float healthScaleFactor = healthCurrent / healthMax;
         currentFullHealthAttackPower += ((attackPower * 0.5f) / numTurnsToChargeUp);
@@ -335,7 +357,10 @@ public abstract class Unit : MonoBehaviour {
             buddy.currentAttackPower = currentAttackPower;
         }
 
-        if (numTurnsToChargeUpLeft == 0) StartCoroutine(Attack());
+        //send charge event to FSM
+        playMakerFSM.SendEvent("Charge");
+
+        if (numTurnsToChargeUpLeft == 0) playMakerFSM.SendEvent("StartAttack");
 
         return numTurnsToChargeUpLeft;
     }
@@ -490,6 +515,8 @@ public abstract class Unit : MonoBehaviour {
 
         ResetAttackBuddies();
         isChargeUpFlagHolder = false;
+        //仅有领头单位开启FSM
+        playMakerFSM.enabled = false;
 
         //if (unitStatusController != null)
         //{

@@ -39,7 +39,8 @@ public class BoardManager : Photon.MonoBehaviour {
     // 兵种种类列表
     public enum UnitTypes : int {
         Archer = 0,
-        Knight = 1
+        Knight = 1,
+        mage = 2
     };
 
     // 初始化棋盘

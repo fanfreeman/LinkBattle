@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class ProjectileArcher : Projectile {
+public class ProjectileShooter : Projectile {
     public override void Init(bool belongsToBottom, int col, float totalAttackPower)
     {
         base.Init(belongsToBottom, col, totalAttackPower);

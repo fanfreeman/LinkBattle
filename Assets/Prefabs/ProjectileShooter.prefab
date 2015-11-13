@@ -28,7 +28,7 @@ GameObject:
   - 114: {fileID: 11455688}
   - 61: {fileID: 6181770}
   m_Layer: 8
-  m_Name: ProjectileArcher
+  m_Name: ProjectileShooter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -131,6 +131,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 10
   column: 0
+  remainingDamage: 0
 --- !u!198 &19826896
 ParticleSystem:
   m_ObjectHideFlags: 1
