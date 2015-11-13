@@ -4987,6 +4987,8 @@ MonoBehaviour:
   playerHpHub: {fileID: 1079632436}
   bottomReserveUnitsQueue: []
   topReserveUnitsQueue: []
+  bottomNumberOfReserveUnits: 0
+  topNumberOfReserveUnits: 0
 --- !u!114 &1213210212
 MonoBehaviour:
   m_ObjectHideFlags: 0
