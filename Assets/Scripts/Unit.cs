@@ -20,6 +20,8 @@ public abstract class Unit : MonoBehaviour {
     public bool isAtBottom;
     [HideInInspector]
     public bool isActivated = false;
+    [HideInInspector]
+    public bool isBarricade = false;
 
     protected static int outOfTopEdgeY = 12;
     protected static int outOfBottomEdgeY = -12;
@@ -52,6 +54,8 @@ public abstract class Unit : MonoBehaviour {
 
     private static int currentUnitIdToAssign = 0;
 
+    GameObject barricadeObj;
+
     void Awake()
     {
         myCollider = GetComponent<BoxCollider2D>();
@@ -80,7 +84,15 @@ public abstract class Unit : MonoBehaviour {
             particleDeath = particleObject.GetComponent<ParticleSystem>();
         }
         
+        // 初始化状态显示
         unitStatusCanvas = unitFeaturesTransform.Find("UnitStatusCanvas").gameObject;
+
+        // 初始化路障
+        Vector3 position = transform.position;
+        position.y += 0.5f;
+        barricadeObj = Instantiate(BoardManager.instance.barricadePrefab, position, Quaternion.identity) as GameObject;
+        barricadeObj.transform.parent = this.transform;
+        barricadeObj.SetActive(false);
     }
 
     void InitUnitStatusControllerIfNeeded()
@@ -137,16 +149,18 @@ public abstract class Unit : MonoBehaviour {
 
         boardX = newX;
         boardY = newY;
-        
-        SetSortingLayer();
+
+        SetSortingLayerForObjectAccordingToRow(null);
     }
 
-    // 将此单位放在其row所对应的sorting layer
-    public void SetSortingLayer()
+    // 将对象位放在其row所对应的sorting layer
+    public void SetSortingLayerForObjectAccordingToRow(GameObject obj)
     {
+        if (obj == null) obj = this.gameObject;
+
         if (isAtBottom)
         {
-            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
             foreach (Renderer renderer in renderers)
             {
                 renderer.sortingLayerName = "row" + boardY.ToString();
@@ -154,7 +168,7 @@ public abstract class Unit : MonoBehaviour {
         }
         else
         {
-            Renderer[] renderers = GetComponentsInChildren<Renderer>();
+            Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
             foreach (Renderer renderer in renderers)
             {
                 renderer.sortingLayerName = "row" + (BoardManager.instance.numRowsPerSide - boardY - 1).ToString();
@@ -294,11 +308,6 @@ public abstract class Unit : MonoBehaviour {
         unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
     }
 
-    void Deactivate()
-    {
-        isActivated = false;
-    }
-
     public void AddAttackBuddy(Unit unit)
     {
         attackBuddies.Add(unit);
@@ -351,10 +360,10 @@ public abstract class Unit : MonoBehaviour {
         foreach (Unit unit in attackBuddies)
         {
             unit.animController.Attack();
-            unit.Deactivate();
+            unit.isActivated = false;
         }
         animController.Attack();
-        this.Deactivate();
+        isActivated = false;
 
         // 腾出这些单位在棋盘上的位置
         foreach (Unit unit in attackBuddies)
@@ -492,10 +501,47 @@ public abstract class Unit : MonoBehaviour {
             BattleLoader.instance.MoveToTopHalfReserveQueue(this);
     }
 
+    // 三个连在一起的单位开始蓄力
+    public void TurnIntoBarricade(float newHealthMax)
+    {
+        isBarricade = true;
+
+        // 隐藏单位美术
+        Transform unitArt = transform.Find("Hip");
+        unitArt.gameObject.SetActive(false);
+
+        // 显示路障
+        barricadeObj.SetActive(true);
+
+        // DEBUG: 设置路障sorting order
+        SetSortingLayerForObjectAccordingToRow(barricadeObj);
+
+        //shaderSetUpScript.isMouseOverEffectEnabled = false;
+
+        // 如果不是队长，隐藏health bar
+        //if (unitStatusController != null) unitStatusController.HideHealth();
+
+        healthMax = newHealthMax;
+        healthCurrent = healthMax;
+    }
+
     // 回收单位时重置属性
     public void ResetUnitStatusForRecycling()
     {
-        Deactivate();
+        isActivated = false;
+
+        if (isBarricade)
+        {
+            isBarricade = false;
+
+            // TODO optimize the following
+            Transform unitArt = transform.Find("Hip");
+            unitArt.gameObject.SetActive(true);
+
+            // TODO optimize the following
+            barricadeObj.SetActive(false);
+        }
+        
         myCollider.enabled = true;
         healthMax = originalHealth;
         SetHealth(healthMax);
