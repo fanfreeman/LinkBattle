@@ -9,19 +9,20 @@ public class ProjectileMeleer : Projectile {
     ///  create projecttile by  custom meleer   not only knight
     /// </summary>
     /// <param name="meleer">the custom gameObject</param>
-    public void SetMeleerObject(GameObject meleer){
-
+    public void SetMeleerObject(GameObject meleer)
+    {
+        // these objects will become my children
         GameObject meleerObject1 = Instantiate(meleer) as GameObject;
         GameObject meleerObject2 = Instantiate(meleer) as GameObject;
         GameObject meleerObject3 = Instantiate(meleer) as GameObject;
 
-        SpriteRenderer[] meleerObject1Sprites1 = meleerObject1.GetComponentsInChildren<SpriteRenderer>();
-        SpriteRenderer[] meleerObject1Sprites2 = meleerObject2.GetComponentsInChildren<SpriteRenderer>();
-        SpriteRenderer[] meleerObject1Sprites3 = meleerObject3.GetComponentsInChildren<SpriteRenderer>();
+        SpriteRenderer[] meleerObject1Sprites = meleerObject1.GetComponentsInChildren<SpriteRenderer>();
+        SpriteRenderer[] meleerObject2Sprites = meleerObject2.GetComponentsInChildren<SpriteRenderer>();
+        SpriteRenderer[] meleerObject3Sprites = meleerObject3.GetComponentsInChildren<SpriteRenderer>();
 
-        setLayerToProjectiles(meleerObject1Sprites1);
-        setLayerToProjectiles(meleerObject1Sprites2);
-        setLayerToProjectiles(meleerObject1Sprites3);
+        SetProjectileSortingLayer(meleerObject1Sprites);
+        SetProjectileSortingLayer(meleerObject2Sprites);
+        SetProjectileSortingLayer(meleerObject3Sprites);
 
         meleerObject1.transform.parent = gameObject.transform;
         meleerObject2.transform.parent = gameObject.transform;
@@ -35,15 +36,13 @@ public class ProjectileMeleer : Projectile {
         {
             animController.Walk();
         }
-
     }
-
-
+    
     //设置layer防覆盖
-    private void setLayerToProjectiles(SpriteRenderer[] sprites){
-        foreach(SpriteRenderer sprite in sprites){
+    private void SetProjectileSortingLayer(SpriteRenderer[] sprites)
+    {
+        foreach (SpriteRenderer sprite in sprites) {
             sprite.sortingLayerName = "projectiles";
         }
     }
-
 }
