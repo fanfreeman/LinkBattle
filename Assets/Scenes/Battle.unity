@@ -4953,6 +4953,7 @@ GameObject:
   - 114: {fileID: 1213210211}
   - 114: {fileID: 1213210212}
   - 114: {fileID: 1213210213}
+  - 114: {fileID: 1213210214}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -5011,6 +5012,7 @@ MonoBehaviour:
   numColumns: 8
   numRowsPerSide: 6
   unitBeingPickedUp: {fileID: 0}
+  barricadePrefab: {fileID: 100006, guid: 4ca57cf35328e4456bdc573e48faa86f, type: 2}
 --- !u!114 &1213210211
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5030,6 +5032,8 @@ MonoBehaviour:
   playerHpHub: {fileID: 1079632436}
   bottomReserveUnitsQueue: []
   topReserveUnitsQueue: []
+  bottomNumberOfReserveUnits: 0
+  topNumberOfReserveUnits: 0
 --- !u!114 &1213210212
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5067,6 +5071,17 @@ MonoBehaviour:
   viewIdField: 1
   instantiationId: 1
   isRuntimeInstantiated: 0
+--- !u!114 &1213210214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1213210207}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77dde87095219044db0942e543834ab9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1233802218
 GameObject:
   m_ObjectHideFlags: 0

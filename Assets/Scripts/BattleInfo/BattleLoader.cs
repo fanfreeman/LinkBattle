@@ -18,10 +18,16 @@ public class BattleLoader : MonoBehaviour {
     private StatusBarController enemyHpHubController;
     private StatusBarController playerHpHubController;
 
+    [HideInInspector]
     public Unit[] bottomReserveUnitsQueue;
+
+    [HideInInspector]
     public Unit[] topReserveUnitsQueue;
 
+    [HideInInspector]
     public int bottomNumberOfReserveUnits = 0;
+
+    [HideInInspector]
     public int topNumberOfReserveUnits = 0;
 
     // Use this for initialization

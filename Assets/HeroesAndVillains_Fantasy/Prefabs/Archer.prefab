@@ -1191,6 +1191,7 @@ MonoBehaviour:
   boardY: 0
   isAtBottom: 0
   isActivated: 0
+  isBarricade: 0
   unitType: 0
   typeString: Archer
   projectilePrefab: {fileID: 109772, guid: 8fe29511b7a1b1147bfc213824c91074, type: 2}
@@ -1689,19 +1690,130 @@ MonoBehaviour:
         - HutongGames.PlayMaker.Actions.IntAdd
         - HutongGames.PlayMaker.Actions.IntCompare
         - HutongGames.PlayMaker.Actions.IntCompare
+        - HutongGames.PlayMaker.Actions.SendMessage
         customNames:
         - 
         - 
         - 
-        actionEnabled: 010101
-        actionIsOpen: 010101
-        actionStartIndex: 000000000300000009000000
-        actionHashCodes: 9ffa9c6671d53d1871d53d18
+        - 
+        actionEnabled: 01010101
+        actionIsOpen: 01010101
+        actionStartIndex: 0000000003000000090000000f000000
+        actionHashCodes: 9ffa9c6671d53d1871d53d186e5036b6
         unityObjectParams: []
         fsmGameObjectParams: []
-        fsmOwnerDefaultParams: []
+        fsmOwnerDefaultParams:
+        - ownerOption: 0
+          gameObject:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: {fileID: 0}
         animationCurveParams: []
-        functionCallParams: []
+        functionCallParams:
+        - FunctionName: 
+          parameterType: Object
+          BoolParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: 0
+          FloatParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: 0
+          IntParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: 0
+          GameObjectParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: {fileID: 0}
+          ObjectParameter:
+            useVariable: 1
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            typeName: UnityEngine.Object
+            value: {fileID: 0}
+          StringParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: 
+          Vector2Parameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: {x: 0, y: 0}
+          Vector3Parameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: {x: 0, y: 0, z: 0}
+          RectParamater:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value:
+              serializedVersion: 2
+              x: 0
+              y: 0
+              width: 0
+              height: 0
+          QuaternionParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: {x: 0, y: 0, z: 0, w: 0}
+          MaterialParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            typeName: 
+            value: {fileID: 0}
+          TextureParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            typeName: 
+            value: {fileID: 0}
+          ColorParameter:
+            useVariable: 0
+            name: 
+            tooltip: 
+            showInInspector: 0
+            networkSync: 0
+            value: {r: 0, g: 0, b: 0, a: 1}
         fsmTemplateControlParams: []
         fsmEventTargetParams: []
         fsmPropertyParams: []
@@ -1709,12 +1821,12 @@ MonoBehaviour:
         fsmStringParams: []
         fsmObjectParams: []
         fsmVarParams: []
-        byteData: 000000000174696d654f66436861726765010000000000000000000174696d654f664368617267650100000000476f546f526f756e64310000000000016e756d4f664368617267650200000000476f546f526f756e643200
+        byteData: 000000000174696d654f66436861726765010000000000000000000174696d654f664368617267650100000000476f546f526f756e64310000000000016e756d4f664368617267650200000000476f546f526f756e6432000000000001000000
         arrayParamSizes: 
         arrayParamTypes: []
         customTypeSizes: 
         customTypeNames: []
-        paramDataType: 100000001000000001000000100000001000000017000000170000001700000001000000100000001000000017000000170000001700000001000000
+        paramDataType: 10000000100000000100000010000000100000001700000017000000170000000100000010000000100000001700000017000000170000000100000014000000070000000700000015000000
         paramName:
         - intVariable
         - add
@@ -1731,8 +1843,12 @@ MonoBehaviour:
         - lessThan
         - greaterThan
         - everyFrame
-        paramDataPos: 00000000110000001600000017000000280000002d00000037000000370000003700000038000000480000004d000000570000005700000057000000
-        paramByteDataSize: 11000000050000000100000011000000050000000a00000000000000000000000100000010000000050000000a000000000000000000000001000000
+        - gameObject
+        - delivery
+        - options
+        - functionCall
+        paramDataPos: 00000000110000001600000017000000280000002d00000037000000370000003700000038000000480000004d00000057000000570000005700000000000000580000005c00000000000000
+        paramByteDataSize: 11000000050000000100000011000000050000000a00000000000000000000000100000010000000050000000a00000000000000000000000100000000000000040000000400000000000000
     - name: Round1
       description: 
       colorIndex: 0

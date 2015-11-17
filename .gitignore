@@ -31,7 +31,10 @@ Assets/Photon Unity Networking
 Assets/Photon Unity Networking.meta
 Assets/Plugins
 Assets/net.fabrejean
-Assets/PlayMaker
-Assets/PlayMaker Utils
+Assets/net.fabrejean.meta
 Assets/Gizmos
 Assets/iTween
+Assets/PlayMaker Utils
+Assets/PlayMaker Utils.meta
+Assets/PlayMaker/
+Assets/PlayMaker.meta

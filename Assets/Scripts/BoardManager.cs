@@ -26,6 +26,7 @@ public class BoardManager : Photon.MonoBehaviour {
     public int numRowsPerSide = 6;
 
     // 玩家捡起的单位
+    [HideInInspector]
     public Unit unitBeingPickedUp = null;
 
     // 空档格位的xy坐标列表
@@ -43,6 +44,17 @@ public class BoardManager : Photon.MonoBehaviour {
         Mage = 2
     };
 
+    // 路障prefab
+    public GameObject barricadePrefab;
+
+    // 预先准备好的随机数数组
+    int[] randomPositions;
+    const int NumRandomPositions = 100;
+    int currentRandomPositionIndex = 0;
+
+    // 此文件代码太多，装到另一个文件里
+    BoardUtils boardUtils;
+
     // 初始化棋盘
     public void InitBoard()
     {
@@ -50,6 +62,8 @@ public class BoardManager : Photon.MonoBehaviour {
             instance = this;
         else if (instance != this)
             Destroy(gameObject);
+
+        boardUtils = GetComponent<BoardUtils>();
 
         SetUpGrids();
         InitializeGridCoordinates();
@@ -144,7 +158,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridTop[randomIndex] = obj.GetComponent<Unit>();
                 unitGridTop[randomIndex].SetPositionValues((int)position.x, (int)position.y);
                 unitGridTop[randomIndex].SetIsAtBottom(false);
-                unitGridTop[randomIndex].SetSortingLayer();
+                unitGridTop[randomIndex].SetSortingLayerForObjectAccordingToRow(null);
                 unitGridTop[randomIndex].AssignNewId();
             }
             else
@@ -157,20 +171,20 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridBottom[randomIndex] = obj.GetComponent<Unit>();
                 unitGridBottom[randomIndex].SetPositionValues((int)position.x, (int)position.y);
                 unitGridBottom[randomIndex].SetIsAtBottom(true);
-                unitGridBottom[randomIndex].SetSortingLayer();
+                unitGridBottom[randomIndex].SetSortingLayerForObjectAccordingToRow(null);
                 unitGridBottom[randomIndex].AssignNewId();
             }
         }
     }
 
     // 提供xy，获得该格位的单位（或null）
-    Unit TopHalf_GetUnitAtPosition(int x, int y)
+    public Unit TopHalf_GetUnitAtPosition(int x, int y)
     {
         return unitGridTop[y * numColumns + x];
     }
 
     // 提供xy，获得该格位的单位（或null）
-    Unit BottomHalf_GetUnitAtPosition(int x, int y)
+    public Unit BottomHalf_GetUnitAtPosition(int x, int y)
     {
         return unitGridBottom[y * numColumns + x];
     }
@@ -207,6 +221,15 @@ public class BoardManager : Photon.MonoBehaviour {
         return new Vector2(x, y);
     }
 
+    public Vector2 GetNextRandomPosition()
+    {
+        int randomPosition = randomPositions[currentRandomPositionIndex];
+        currentRandomPositionIndex++;
+        if (currentRandomPositionIndex >= NumRandomPositions)
+            currentRandomPositionIndex = 0;
+        return GetPositionGivenArrayIndex(randomPosition);
+    }
+
     // 将上半部分所有单位往下推
     IEnumerator TopHalf_ConsolidateUnits(MonoBehaviour callbackScriptInstance = null, string callbackMethod = null)
     {
@@ -227,7 +250,7 @@ public class BoardManager : Photon.MonoBehaviour {
                         }
                         else
                         {
-                            TopHalf_CheckFormationForUnit(unit);
+                            //TopHalf_CheckFormationForUnit(unit);
                             break; // 如果往前一行没有空位，则再往前也不会有空位了
                         }
                         newY--;
@@ -235,6 +258,19 @@ public class BoardManager : Photon.MonoBehaviour {
                 }
 
                 yield return null;
+            }
+        }
+
+        // 检查有哪些单位形成formation
+        for (int y = 0; y < numRowsPerSide; y++) // 从队首行开始往队尾扫描
+        {
+            for (int x = 0; x < numColumns; x++)
+            {
+                Unit unit = TopHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    TopHalf_CheckFormationForUnit(unit);
+                }
             }
         }
 
@@ -263,7 +299,7 @@ public class BoardManager : Photon.MonoBehaviour {
                         }
                         else
                         {
-                            BottomHalf_CheckFormationForUnit(unit);
+                            //BottomHalf_CheckFormationForUnit(unit);
                             break; // 如果往前一行没有空位，则再往前也不会有空位了
                         }
                         newY--;
@@ -271,6 +307,19 @@ public class BoardManager : Photon.MonoBehaviour {
                 }
 
                 yield return null;
+            }
+        }
+
+        // 检查有哪些单位形成formation
+        for (int y = 0; y < numRowsPerSide; y++) // 从队首行开始往队尾扫描
+        {
+            for (int x = 0; x < numColumns; x++)
+            {
+                Unit unit = BottomHalf_GetUnitAtPosition(x, y);
+                if (unit != null)
+                {
+                    BottomHalf_CheckFormationForUnit(unit);
+                }
             }
         }
 
@@ -304,10 +353,14 @@ public class BoardManager : Photon.MonoBehaviour {
         if (unit.boardY <= 1) return null;
         return BottomHalf_GetUnitAtPosition(unit.boardX, unit.boardY - 2);
     }
-
+    
     // 检测指定单位是否形成三连
     public void TopHalf_CheckFormationForUnit(Unit unit)
     {
+        // 检查是否横着连成墙
+        if (boardUtils.TopHalf_CheckBarricadeFormation(unit)) return;
+        
+        // 检查是否竖着连成蓄力组
         if (unit.boardY <= 1) return;
         Unit unitInFront = TopHalf_GetUnitInFrontOfUnit(unit); // 中间的单位
         Unit unitTwoInFront = TopHalf_GetUnitTwoInFrontOfUnit(unit); // 最靠近队首的单位
@@ -317,7 +370,8 @@ public class BoardManager : Photon.MonoBehaviour {
             if (unit.GetTypeString() != unitInFront.GetTypeString()) return;
             if (unit.GetTypeString() != unitTwoInFront.GetTypeString()) return;
 
-            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
+            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated &&
+                !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade) // 确保三个单位都没有在蓄力或变成路障
             {
                 unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
                 unitTwoInFront.EnableChargeUpStatusDisplay(); // 队首单位显示status
@@ -328,6 +382,10 @@ public class BoardManager : Photon.MonoBehaviour {
     // 检测指定单位是否形成三连
     public void BottomHalf_CheckFormationForUnit(Unit unit)
     {
+        // 检查是否横着连成墙
+        if (boardUtils.BottomHalf_CheckBarricadeFormation(unit)) return;
+
+        // 检查是否竖着连成蓄力组
         if (unit.boardY <= 1) return;
         Unit unitInFront = BottomHalf_GetUnitInFrontOfUnit(unit); // 中间的单位
         Unit unitTwoInFront = BottomHalf_GetUnitTwoInFrontOfUnit(unit); // 最靠近队首的单位
@@ -337,7 +395,8 @@ public class BoardManager : Photon.MonoBehaviour {
             if (unit.GetTypeString() != unitInFront.GetTypeString()) return;
             if (unit.GetTypeString() != unitTwoInFront.GetTypeString()) return;
 
-            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated)
+            if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated &&
+                !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade) // 确保三个单位都没有在蓄力或变成路障
             {
                 unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
                 unit.EnableChargeUpStatusDisplay(); // 队尾单位显示status
@@ -748,9 +807,22 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     // 游戏初始时，一端发送棋盘布局给另一端
+    // 同时发送预先准备好的随机数数组
     void SendBoardState()
     {
-        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitIds(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom), SerializeUnitGridAsUnitIds(unitGridBottom));
+        CreateRandomPositionsArray(); // 创建随机数数组
+        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitIds(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom), SerializeUnitGridAsUnitIds(unitGridBottom), randomPositions);
+    }
+
+    // 创建随机数数组
+    void CreateRandomPositionsArray()
+    {
+        randomPositions = new int[NumRandomPositions];
+        for (int i = 0; i < NumRandomPositions; i++)
+        {
+            int randomPosition = Random.Range(0, numColumns * numRowsPerSide);
+            randomPositions[i] = randomPosition;
+        }
     }
 
     int[] SerializeUnitGridAsUnitTypes(List<Unit> unitGrid)
@@ -778,9 +850,12 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     [PunRPC]
-    void SyncBoard(int[] myGridOfUnitTypes, int[] myGridOfUnitIds, int[] enemyGridOfUnitTypes, int[] enemyGridOfUnitIds)
+    void SyncBoard(int[] myGridOfUnitTypes, int[] myGridOfUnitIds, int[] enemyGridOfUnitTypes, int[] enemyGridOfUnitIds, int[] remoteRandomPositions)
     {
         Debug.Log("syncing board...");
+
+        // 同步预先准备好的随机数数组
+        randomPositions = remoteRandomPositions;
 
         for (int index = 0; index < myGridOfUnitTypes.Length; index++)
         {
@@ -793,7 +868,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridBottom[index] = obj.GetComponent<Unit>();
                 unitGridBottom[index].SetPositionValues((int)position.x, (int)position.y);
                 unitGridBottom[index].SetIsAtBottom(true);
-                unitGridBottom[index].SetSortingLayer();
+                unitGridBottom[index].SetSortingLayerForObjectAccordingToRow(null);
                 unitGridBottom[index].id = myGridOfUnitIds[index];
             }
         }
@@ -809,7 +884,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 unitGridTop[index] = obj.GetComponent<Unit>();
                 unitGridTop[index].SetPositionValues((int)position.x, (int)position.y);
                 unitGridTop[index].SetIsAtBottom(false);
-                unitGridTop[index].SetSortingLayer();
+                unitGridTop[index].SetSortingLayerForObjectAccordingToRow(null);
                 unitGridTop[index].id = enemyGridOfUnitIds[index];
             }
         }
