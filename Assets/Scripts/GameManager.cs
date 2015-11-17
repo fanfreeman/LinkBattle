@@ -178,6 +178,9 @@ public class GameManager : Photon.PunBehaviour
         {
             StartCoroutine(BoardManager.instance.TopHalf_ChargingUnitsTickDown());
         }
+
+        Vector2 randomPosition = BoardManager.instance.GetNextRandomPosition();
+        Debug.LogError("random position x:" + randomPosition.x + " y:" + randomPosition.y);
     }
 
     // 回合开始第三步，玩家获得控制（真正的回合开始）

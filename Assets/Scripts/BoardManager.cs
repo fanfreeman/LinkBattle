@@ -46,6 +46,11 @@ public class BoardManager : Photon.MonoBehaviour {
     // 路障prefab
     public GameObject barricadePrefab;
 
+    // 预先准备好的随机数数组
+    int[] randomPositions;
+    const int NumRandomPositions = 100;
+    int currentRandomPositionIndex = 0;
+
     // 此文件代码太多，装到另一个文件里
     BoardUtils boardUtils;
 
@@ -213,6 +218,15 @@ public class BoardManager : Photon.MonoBehaviour {
         int x = index % numColumns;
         int y = index / numColumns;
         return new Vector2(x, y);
+    }
+
+    public Vector2 GetNextRandomPosition()
+    {
+        int randomPosition = randomPositions[currentRandomPositionIndex];
+        currentRandomPositionIndex++;
+        if (currentRandomPositionIndex >= NumRandomPositions)
+            currentRandomPositionIndex = 0;
+        return GetPositionGivenArrayIndex(randomPosition);
     }
 
     // 将上半部分所有单位往下推
@@ -786,9 +800,22 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     // 游戏初始时，一端发送棋盘布局给另一端
+    // 同时发送预先准备好的随机数数组
     void SendBoardState()
     {
-        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitIds(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom), SerializeUnitGridAsUnitIds(unitGridBottom));
+        CreateRandomPositionsArray(); // 创建随机数数组
+        photonView.RPC("SyncBoard", PhotonTargets.Others, SerializeUnitGridAsUnitTypes(unitGridTop), SerializeUnitGridAsUnitIds(unitGridTop), SerializeUnitGridAsUnitTypes(unitGridBottom), SerializeUnitGridAsUnitIds(unitGridBottom), randomPositions);
+    }
+
+    // 创建随机数数组
+    void CreateRandomPositionsArray()
+    {
+        randomPositions = new int[NumRandomPositions];
+        for (int i = 0; i < NumRandomPositions; i++)
+        {
+            int randomPosition = Random.Range(0, numColumns * numRowsPerSide);
+            randomPositions[i] = randomPosition;
+        }
     }
 
     int[] SerializeUnitGridAsUnitTypes(List<Unit> unitGrid)
@@ -816,9 +843,12 @@ public class BoardManager : Photon.MonoBehaviour {
     }
 
     [PunRPC]
-    void SyncBoard(int[] myGridOfUnitTypes, int[] myGridOfUnitIds, int[] enemyGridOfUnitTypes, int[] enemyGridOfUnitIds)
+    void SyncBoard(int[] myGridOfUnitTypes, int[] myGridOfUnitIds, int[] enemyGridOfUnitTypes, int[] enemyGridOfUnitIds, int[] remoteRandomPositions)
     {
         Debug.Log("syncing board...");
+
+        // 同步预先准备好的随机数数组
+        randomPositions = remoteRandomPositions;
 
         for (int index = 0; index < myGridOfUnitTypes.Length; index++)
         {
