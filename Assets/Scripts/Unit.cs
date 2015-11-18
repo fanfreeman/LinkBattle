@@ -44,7 +44,8 @@ public abstract class Unit : MonoBehaviour {
 
     //select unit type by someone not a coder
     public BoardManager.UnitTypes unitType;
-    public BoardManager.UnitTypes GetUnitType(){
+    public BoardManager.UnitTypes GetUnitType()
+    {
         return unitType;
     }
 
@@ -119,7 +120,8 @@ public abstract class Unit : MonoBehaviour {
     }
 
     //unit是不是 不是城墙&不是三连&没被控制
-    public bool IsUnitControllable(){
+    public bool IsUnitControllable()
+    {
         return !isBarricade & !isActivated & !isLossControll;
     }
 
@@ -155,7 +157,8 @@ public abstract class Unit : MonoBehaviour {
         boardY = y;
     }
 
-    public Vector2 GetPositionValues(){
+    public Vector2 GetPositionValues()
+    {
         return new Vector2(boardX, boardY);
     }
 
@@ -372,7 +375,7 @@ public abstract class Unit : MonoBehaviour {
         {
             if (turnOfLossControl == 0)CancelLossControllStatus();
             if (unitStatusController != null)
-                unitStatusController.SetCountDown(--turnOfLossControl);
+                unitStatusController.SetCountDown(turnOfLossControl--);
         }
 
         if (!isActivated || !isChargeUpFlagHolder) return -1; // 只有显示status的单位可以让整组tick down
@@ -629,7 +632,7 @@ public abstract class Unit : MonoBehaviour {
             barricadeObj.SetActive(false);
         }
 
-        if(isLossControll)
+        if (isLossControll)
         {
             CancelLossControllStatus();
         }

@@ -71,7 +71,8 @@ public class Projectile : MonoBehaviour {
         Unit targetUnit = other.GetComponent<Unit>();
         //检测是否撞线
         LineController hittedLine = other.GetComponent<LineController>();
-        if(targetUnit == null && hittedLine != null){
+        if (targetUnit == null && hittedLine != null)
+        {
             int damage = Mathf.CeilToInt(remainingDamage);
             if (other.tag == "EnemyLine") {
                 BattleLoader.instance.ChangeTopHp(-damage);

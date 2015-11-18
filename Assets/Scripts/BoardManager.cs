@@ -233,13 +233,16 @@ public class BoardManager : Photon.MonoBehaviour {
         int gridAmount = numColumns*numRowsPerSide;
         int randomPositionsLength = randomPositions.Length;
 
-        for (int i = 0;i < randomPositionsLength;i++){
+        for (int i = 0;i < randomPositionsLength;i++)
+        {
             i++;
             int randomPosition = randomPositions[currentRandomPositionIndex++ % gridAmount];
             Vector2 randomPositionVec = GetPositionGivenArrayIndex(randomPosition);
-            foreach (Unit unit in unitGrid){
+            foreach (Unit unit in unitGrid)
+            {
                 if (unit != null)
-                if (unit.GetPositionValues().Equals(randomPositionVec) && unit.IsUnitControllable()){
+                if (unit.GetPositionValues().Equals(randomPositionVec) && unit.IsUnitControllable())
+                {
                     return unit;
                 }
             }
@@ -848,7 +851,7 @@ public class BoardManager : Photon.MonoBehaviour {
         for (int i = 0; i < NumRandomPositions; i++)
         {
             index = Random.Range(0, NumRandomPositions - i) + i;
-            if(index != i)
+            if (index != i)
             {
                 tmp = randomPositions[i];
                 randomPositions[i] = randomPositions[index];
