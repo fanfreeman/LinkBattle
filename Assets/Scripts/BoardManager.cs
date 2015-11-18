@@ -49,7 +49,7 @@ public class BoardManager : Photon.MonoBehaviour {
 
     // 预先准备好的随机数数组
     int[] randomPositions;
-    const int NumRandomPositions = 100;
+    int NumRandomPositions;
     int currentRandomPositionIndex = 0;
 
     // 此文件代码太多，装到另一个文件里
@@ -221,13 +221,31 @@ public class BoardManager : Photon.MonoBehaviour {
         return new Vector2(x, y);
     }
 
-    public Vector2 GetNextRandomPosition()
+    //随机获取对方单位 单位不能是三联 被控 或者是城墙
+    public Unit GetControllableUnitFromOtherByRandomArray(bool isBottom)
     {
-        int randomPosition = randomPositions[currentRandomPositionIndex];
+        List<Unit> unitGrid;
+        if (isBottom)
+            unitGrid = unitGridTop;
+        else
+            unitGrid = unitGridBottom;
+
+        int gridAmount = numColumns*numRowsPerSide;
+        int randomPositionsLength = randomPositions.Length;
+
+        for (int i = 0;i < randomPositionsLength;i++){
+            i++;
+            int randomPosition = randomPositions[currentRandomPositionIndex++ % gridAmount];
+            Vector2 randomPositionVec = GetPositionGivenArrayIndex(randomPosition);
+            foreach (Unit unit in unitGrid){
+                if (unit != null)
+                if (unit.GetPositionValues().Equals(randomPositionVec) && unit.IsUnitControllable()){
+                    return unit;
+                }
+            }
+        }
         currentRandomPositionIndex++;
-        if (currentRandomPositionIndex >= NumRandomPositions)
-            currentRandomPositionIndex = 0;
-        return GetPositionGivenArrayIndex(randomPosition);
+        return null;//很小的可能性都被控制了哟！
     }
 
     // 将上半部分所有单位往下推
@@ -817,13 +835,28 @@ public class BoardManager : Photon.MonoBehaviour {
     // 创建随机数数组
     void CreateRandomPositionsArray()
     {
+        NumRandomPositions = numColumns * numRowsPerSide * 3;
         randomPositions = new int[NumRandomPositions];
+        int maxNum = numColumns * numRowsPerSide;
         for (int i = 0; i < NumRandomPositions; i++)
         {
-            int randomPosition = Random.Range(0, numColumns * numRowsPerSide);
-            randomPositions[i] = randomPosition;
+            //int randomPosition = Random.Range(0, numColumns * numRowsPerSide);
+            randomPositions[i] = i % maxNum;
+        }
+        //对数组洗牌
+        int index, tmp;
+        for (int i = 0; i < NumRandomPositions; i++)
+        {
+            index = Random.Range(0, NumRandomPositions - i) + i;
+            if(index != i)
+            {
+                tmp = randomPositions[i];
+                randomPositions[i] = randomPositions[index];
+                randomPositions[index] = tmp;
+            }
         }
     }
+
 
     int[] SerializeUnitGridAsUnitTypes(List<Unit> unitGrid)
     {

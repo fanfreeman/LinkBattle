@@ -26,6 +26,18 @@ public abstract class Unit : MonoBehaviour {
     public bool isActivated = false;
     [HideInInspector]
     public bool isBarricade = false;
+    [HideInInspector]
+    public bool isLossControll = false;
+    [HideInInspector]
+    public UnitAnimationController animController;
+    [HideInInspector]
+    public Transform unitArt;
+    [HideInInspector]
+    public GameObject barricadeObj;
+    [HideInInspector]
+    public GameObject lossControllObj;
+    [HideInInspector]
+    public int turnOfLossControl;
 
     protected static int outOfTopEdgeY = 12;
     protected static int outOfBottomEdgeY = -12;
@@ -37,7 +49,6 @@ public abstract class Unit : MonoBehaviour {
     }
 
     ShaderSetUp shaderSetUpScript;
-    UnitAnimationController animController;
 
     float healthCurrent { get; set; }
     protected float currentAttackPower { get; set; } // 被health影响的已经蓄力好的攻击力
@@ -62,13 +73,14 @@ public abstract class Unit : MonoBehaviour {
     private static int currentUnitIdToAssign = 0;
 
     public String typeString = "undefine";
-    GameObject barricadeObj;
 
     protected virtual void Awake()
     {
         myCollider = GetComponent<BoxCollider2D>();
         unitFeaturesTransform = transform.Find("UnitFeatures");
         damageTransform = unitFeaturesTransform.Find("DamageTransform");
+
+        unitArt = transform.Find("Hip");
 
         shaderSetUpScript = GetComponent<ShaderSetUp>();
         animController = unitFeaturesTransform.GetComponent<UnitAnimationController>();
@@ -106,6 +118,11 @@ public abstract class Unit : MonoBehaviour {
 
     }
 
+    //unit是不是 不是城墙&不是三连&没被控制
+    public bool IsUnitControllable(){
+        return !isBarricade & !isActivated & !isLossControll;
+    }
+
     public string GetTypeString()
     {
         return typeString;
@@ -136,6 +153,10 @@ public abstract class Unit : MonoBehaviour {
     {
         boardX = x;
         boardY = y;
+    }
+
+    public Vector2 GetPositionValues(){
+        return new Vector2(boardX, boardY);
     }
 
     // 设置此单位在棋盘上半部分或下半部分
@@ -343,9 +364,17 @@ public abstract class Unit : MonoBehaviour {
         attackBuddies.Remove(buddy);
     }
 
-    // 蓄力tick down
+    // 蓄力tick down  loss controltick down
     public int ChargeUpTickDown()
     {
+        //loss conroll 记轮
+        if (isLossControll)
+        {
+            if (turnOfLossControl == 0)CancelLossControllStatus();
+            if (unitStatusController != null)
+                unitStatusController.SetCountDown(--turnOfLossControl);
+        }
+
         if (!isActivated || !isChargeUpFlagHolder) return -1; // 只有显示status的单位可以让整组tick down
 
         if (enableParticles)
@@ -525,13 +554,36 @@ public abstract class Unit : MonoBehaviour {
             BattleLoader.instance.MoveToTopHalfReserveQueue(this);
     }
 
+
+    //被控制的时候
+    public void LossControll(GameObject artLossControll, int turnOfLossControl)
+    {
+        if (lossControllObj != null)
+            Destroy(lossControllObj);
+
+        lossControllObj = artLossControll;
+        lossControllObj = Instantiate(artLossControll, transform.position, Quaternion.identity) as GameObject;
+        lossControllObj.transform.parent = this.transform;
+        lossControllObj.SetActive(true);
+
+        isLossControll = true;
+        this.turnOfLossControl = turnOfLossControl;
+
+        barricadeObj.SetActive(false);
+        unitArt.gameObject.SetActive(false);
+
+        InitUnitStatusControllerIfNeeded();
+        unitStatusController.HideHealth();
+        unitStatusController.SetCountDown(turnOfLossControl);
+
+    }
+
     // 三个连在一起的单位开始蓄力
     public void TurnIntoBarricade(float newHealthMax)
     {
         isBarricade = true;
 
         // 隐藏单位美术
-        Transform unitArt = transform.Find("Hip");
         unitArt.gameObject.SetActive(false);
 
         // 显示路障
@@ -549,6 +601,19 @@ public abstract class Unit : MonoBehaviour {
         healthCurrent = healthMax;
     }
 
+    //取消lossCotroll状态
+    public void CancelLossControllStatus()
+    {
+        isLossControll = false;
+        unitArt.gameObject.SetActive(true);
+        barricadeObj.SetActive(false);
+        if (unitStatusController != null) unitStatusController.Clear();
+        unitStatusController = null;
+        unitStatusCanvas.SetActive(false);
+
+        Destroy(lossControllObj);
+    }
+
     // 回收单位时重置属性
     public void ResetUnitStatusForRecycling()
     {
@@ -557,15 +622,18 @@ public abstract class Unit : MonoBehaviour {
         if (isBarricade)
         {
             isBarricade = false;
-
             // TODO optimize the following
-            Transform unitArt = transform.Find("Hip");
             unitArt.gameObject.SetActive(true);
 
             // TODO optimize the following
             barricadeObj.SetActive(false);
         }
-        
+
+        if(isLossControll)
+        {
+            CancelLossControllStatus();
+        }
+
         myCollider.enabled = true;
         healthMax = originalHealth;
         SetHealth(healthMax);
@@ -594,4 +662,5 @@ public abstract class Unit : MonoBehaviour {
         id = currentUnitIdToAssign;
         currentUnitIdToAssign++;
     }
+
 }

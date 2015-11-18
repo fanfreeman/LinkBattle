@@ -49,9 +49,10 @@ public class BoardUtils : MonoBehaviour {
         // 确保单位为同一兵种
         if (!originalUnit.GetTypeString().Equals(otherUnit.GetTypeString())) return false;
 
-        // 确保单位都没有在蓄力或已变成路障
+        // 确保单位都没有在蓄力或已变成路障  没失控
         if (originalUnit.isActivated || otherUnit.isActivated ||
-            originalUnit.isBarricade || otherUnit.isBarricade) return false;
+            originalUnit.isBarricade || otherUnit.isBarricade||
+        originalUnit.isLossControll || otherUnit.isLossControll ) return false;
 
         return true;
     }

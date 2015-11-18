@@ -31,6 +31,17 @@ public class Shooter : Unit {
         StartCoroutine(RemoveWithAnimation());
     }
 
+    //施法动画
+    IEnumerator Cast()
+    {
+        foreach (Unit unit in attackBuddies)
+        {
+            unit.animController.Cast1();
+        }
+        animController.Cast1();
+        yield return new WaitForSeconds(0.3f);;
+    }
+
     // 远攻单位释放箭矢
     void LaunchProjectile()
     {
