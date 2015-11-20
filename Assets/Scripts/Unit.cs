@@ -122,7 +122,7 @@ public abstract class Unit : MonoBehaviour {
     //unit是不是 不是城墙&不是三连&没被控制
     public bool IsUnitControllable()
     {
-        return !isBarricade & !isActivated & !isLossControll;
+            return !isBarricade & !isActivated & !isLossControll;
     }
 
     public string GetTypeString()

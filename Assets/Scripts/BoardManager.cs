@@ -221,8 +221,22 @@ public class BoardManager : Photon.MonoBehaviour {
         return new Vector2(x, y);
     }
 
-    //随机获取对方单位 单位不能是三联 被控 或者是城墙
-    public Unit GetControllableUnitFromOtherByRandomArray(bool isBottom)
+    /// <summary>
+    ///  随机获取对方单位 单位不能是三联 被控 或者是城墙
+    /// </summary>
+    /// <param name="isBottom">是否是下棋盘</param>
+    /// <param name="isCharing">选不选三联单位</param>
+    /// <param name="isLossingControll">选不选失控单位</param>
+    /// <param name="isBarricading">选不选城墙</param>
+    /// <param name="isNormal">选不选unit是不是 不是城墙&不是三连&没被控制</param>
+    /// <returns></returns>
+    public Unit GetControllableUnitFromOtherByRandomArray(
+            bool isBottom,
+            bool isCharing,
+            bool isLossingControll,
+            bool isBarricading,
+            bool isNormal
+    )
     {
         List<Unit> unitGrid;
         if (isBottom)
@@ -241,7 +255,13 @@ public class BoardManager : Photon.MonoBehaviour {
             foreach (Unit unit in unitGrid)
             {
                 if (unit != null)
-                if (unit.GetPositionValues().Equals(randomPositionVec) && unit.IsUnitControllable())
+                if (
+                    unit.GetPositionValues().Equals(randomPositionVec) &&
+                    !((unit.isBarricade == true) && (isBarricading == false))&&
+                    !((unit.isActivated == true) && (isCharing == false))&&
+                    !((unit.isLossControll == true) && (isLossingControll == false))&&
+                    !((unit.IsUnitControllable() == true) && (isNormal == false))
+                )
                 {
                     return unit;
                 }
@@ -392,7 +412,10 @@ public class BoardManager : Photon.MonoBehaviour {
             if (unit.GetTypeString() != unitTwoInFront.GetTypeString()) return;
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated &&
-                !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade) // 确保三个单位都没有在蓄力或变成路障
+                !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade&& // 确保三个单位都没有在蓄力或变成路障
+                !unit.isLossControll && !unitInFront.isLossControll && !unitTwoInFront.isLossControll  // 确保三个单位都没有被控制
+
+            )
             {
                 unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
                 unitTwoInFront.EnableChargeUpStatusDisplay(); // 队首单位显示status

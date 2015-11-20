@@ -1091,8 +1091,7 @@ MonoBehaviour:
   unitArt: {fileID: 0}
   barricadeObj: {fileID: 0}
   lossControllObj: {fileID: 0}
-  turnOfLossControl: {fileID: 0}
-  battleLoader: {fileID: 0}
+  turnOfLossControl: 0
   unitType: 2
   typeString: Mage
   projectilePrefab: {fileID: 109772, guid: 8fe29511b7a1b1147bfc213824c91074, type: 2}
@@ -1653,8 +1652,8 @@ MonoBehaviour:
         - 
         actionEnabled: 010101
         actionIsOpen: 010101
-        actionStartIndex: 000000000200000006000000
-        actionHashCodes: 6fc76cb88e397c05cd02e51b
+        actionStartIndex: 00000000060000000a000000
+        actionHashCodes: cb97a8588e397c05cd02e51b
         unityObjectParams:
         - {fileID: 11441464}
         fsmGameObjectParams:
@@ -1803,14 +1802,18 @@ MonoBehaviour:
           typeName: Unit
           value: {fileID: 0}
         fsmVarParams: []
-        byteData: 000200000000
+        byteData: 01000000000200000000
         arrayParamSizes: 
         arrayParamTypes: []
         customTypeSizes: 
         customTypeNames: []
-        paramDataType: 050000001800000014000000120000001500000001000000180000001300000010000000
+        paramDataType: 05000000010000000100000001000000010000001800000014000000120000001500000001000000180000001300000010000000
         paramName:
         - unit
+        - idleUnit
+        - barricadUnit
+        - chargingUnit
+        - lossControllUnit
         - theRandomUnit
         - gameObject
         - behaviour
@@ -1819,8 +1822,8 @@ MonoBehaviour:
         - lossControllUnitRef
         - lossControlPerfab
         - turnOfLossControl
-        paramDataPos: 000000000000000000000000000000000000000000000000010000000000000001000000
-        paramByteDataSize: 000000000000000000000000000000000000000001000000000000000000000005000000
+        paramDataPos: 00000000000000000100000002000000030000000000000000000000000000000000000004000000010000000000000005000000
+        paramByteDataSize: 00000000010000000100000001000000010000000000000000000000000000000000000001000000000000000000000005000000
     - name: Round2
       description: 
       colorIndex: 0

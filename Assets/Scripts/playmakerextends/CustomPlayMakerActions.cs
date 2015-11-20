@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using HutongGames.PlayMaker;
+using UnityEngine;
 
 namespace HutongGames.PlayMaker.Actions{
 	[ActionCategory("特殊技")]
@@ -8,6 +9,23 @@ namespace HutongGames.PlayMaker.Actions{
         [RequiredField]
         [Tooltip("Caster Unit")]
 		public Unit unit;
+
+        [RequiredField]
+        [Tooltip("能被控制也没事干的单位")]
+        public bool idleUnit = true;//随机选择的敌人存储到这里 可以为null
+
+        [RequiredField]
+        [Tooltip("城墙要不要")]
+        public bool barricadUnit;//随机选择的敌人存储到这里 可以为null
+
+        [RequiredField]
+        [Tooltip("三联单位要不要")]
+        public bool chargingUnit;//随机选择的敌人存储到这里 可以为null
+
+        [RequiredField]
+        [Tooltip("失去控制的单位要不要")]
+        public bool lossControllUnit;//随机选择的敌人存储到这里 可以为null
+
 
         [UIHint(UIHint.Variable)]
         [RequiredField]
@@ -20,18 +38,36 @@ namespace HutongGames.PlayMaker.Actions{
         public override void OnEnter()
         {
             bool isAtBottom = unit.isAtBottom;
-            theRandomUnit.Value = BoardManager.instance.GetControllableUnitFromOtherByRandomArray(isAtBottom);
+            theRandomUnit.Value =
+            BoardManager.instance.GetControllableUnitFromOtherByRandomArray(
+                    isAtBottom,chargingUnit,lossControllUnit,barricadUnit,idleUnit
+            );
         }
 
         public override void Reset()
         {
             theRandomUnit = null;
+            chargingUnit = false;
+            lossControllUnit = false;
+            idleUnit = true;
+            barricadUnit = false;
+
         }
 
         public override string ErrorCheck()
         {
-			if(unit == null){
+			if(unit == null)
+            {
                 return "unit should not be null";
+            }
+
+            if(
+            chargingUnit == false&&
+            lossControllUnit == false&&
+            barricadUnit == false&&
+            idleUnit == false)
+            {
+                return "我看你啥都不用选了！";
             }
             return string.Empty;
         }
