@@ -235,6 +235,7 @@ public class BoardManager : Photon.MonoBehaviour {
             bool isCharing,
             bool isLossingControll,
             bool isBarricading,
+            bool isNihility,
             bool isNormal
     )
     {
@@ -260,6 +261,7 @@ public class BoardManager : Photon.MonoBehaviour {
                     !((unit.isBarricade == true) && (isBarricading == false))&&
                     !((unit.isActivated == true) && (isCharing == false))&&
                     !((unit.isLossControll == true) && (isLossingControll == false))&&
+                    !((unit.isNihility == true) && (isNihility == false))&&
                     !((unit.IsUnitControllable() == true) && (isNormal == false))
                 )
                 {
@@ -414,7 +416,6 @@ public class BoardManager : Photon.MonoBehaviour {
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated &&
                 !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade&& // 确保三个单位都没有在蓄力或变成路障
                 !unit.isLossControll && !unitInFront.isLossControll && !unitTwoInFront.isLossControll  // 确保三个单位都没有被控制
-
             )
             {
                 unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation

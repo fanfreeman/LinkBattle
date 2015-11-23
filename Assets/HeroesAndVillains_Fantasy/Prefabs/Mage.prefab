@@ -1087,11 +1087,14 @@ MonoBehaviour:
   isActivated: 0
   isBarricade: 0
   isLossControll: 0
+  isNihility: 0
   animController: {fileID: 0}
   unitArt: {fileID: 0}
   barricadeObj: {fileID: 0}
   lossControllObj: {fileID: 0}
+  nihilityObj: {fileID: 0}
   turnOfLossControl: 0
+  turnOfLossNihility: 0
   unitType: 2
   typeString: Mage
   projectilePrefab: {fileID: 109772, guid: 8fe29511b7a1b1147bfc213824c91074, type: 2}
@@ -1637,7 +1640,7 @@ MonoBehaviour:
           name: Charge
           isSystemEvent: 0
           isGlobal: 1
-        toState: Round2
+        toState: Round1
         linkStyle: 0
         linkConstraint: 0
         colorIndex: 0
@@ -1652,8 +1655,8 @@ MonoBehaviour:
         - 
         actionEnabled: 010101
         actionIsOpen: 010101
-        actionStartIndex: 00000000060000000a000000
-        actionHashCodes: cb97a8588e397c05cd02e51b
+        actionStartIndex: 00000000070000000b000000
+        actionHashCodes: 4275cf948e397c05cd02e51b
         unityObjectParams:
         - {fileID: 11441464}
         fsmGameObjectParams:
@@ -1802,18 +1805,19 @@ MonoBehaviour:
           typeName: Unit
           value: {fileID: 0}
         fsmVarParams: []
-        byteData: 01000000000200000000
+        byteData: 0100000000000200000000
         arrayParamSizes: 
         arrayParamTypes: []
         customTypeSizes: 
         customTypeNames: []
-        paramDataType: 05000000010000000100000001000000010000001800000014000000120000001500000001000000180000001300000010000000
+        paramDataType: 0500000001000000010000000100000001000000010000001800000014000000120000001500000001000000180000001300000010000000
         paramName:
         - unit
         - idleUnit
         - barricadUnit
         - chargingUnit
         - lossControllUnit
+        - nihility
         - theRandomUnit
         - gameObject
         - behaviour
@@ -1822,8 +1826,8 @@ MonoBehaviour:
         - lossControllUnitRef
         - lossControlPerfab
         - turnOfLossControl
-        paramDataPos: 00000000000000000100000002000000030000000000000000000000000000000000000004000000010000000000000005000000
-        paramByteDataSize: 00000000010000000100000001000000010000000000000000000000000000000000000001000000000000000000000005000000
+        paramDataPos: 0000000000000000010000000200000003000000040000000000000000000000000000000000000005000000010000000000000006000000
+        paramByteDataSize: 0000000001000000010000000100000001000000010000000000000000000000000000000000000001000000000000000000000005000000
     - name: Round2
       description: 
       colorIndex: 0
@@ -1915,21 +1919,8 @@ MonoBehaviour:
       colorVariables: []
       rectVariables: []
       quaternionVariables: []
-      gameObjectVariables:
-      - useVariable: 1
-        name: unitSelf
-        tooltip: 
-        showInInspector: 0
-        networkSync: 0
-        value: {fileID: 0}
+      gameObjectVariables: []
       objectVariables:
-      - useVariable: 1
-        name: BattleController
-        tooltip: 
-        showInInspector: 0
-        networkSync: 0
-        typeName: BattleLoader
-        value: {fileID: 0}
       - useVariable: 1
         name: selectedUnit
         tooltip: 
@@ -1937,13 +1928,6 @@ MonoBehaviour:
         networkSync: 0
         typeName: Unit
         value: {fileID: 0}
-      - useVariable: 1
-        name: selfComponentShooter
-        tooltip: 
-        showInInspector: 1
-        networkSync: 0
-        typeName: Shooter
-        value: {fileID: 11441464}
       materialVariables: []
       textureVariables: []
     description: 

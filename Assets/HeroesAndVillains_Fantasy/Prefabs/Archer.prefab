@@ -1185,13 +1185,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   healthMax: 100
-  numTurnsToChargeUp: 1
+  numTurnsToChargeUp: 3
   attackPower: 250
   boardX: 0
   boardY: 0
   isAtBottom: 0
   isActivated: 0
   isBarricade: 0
+  isLossControll: 0
+  isNihility: 0
+  animController: {fileID: 0}
+  unitArt: {fileID: 0}
+  barricadeObj: {fileID: 0}
+  lossControllObj: {fileID: 0}
+  nihilityObj: {fileID: 0}
+  turnOfLossControl: 0
+  turnOfLossNihility: 0
   unitType: 0
   typeString: Archer
   projectilePrefab: {fileID: 109772, guid: 8fe29511b7a1b1147bfc213824c91074, type: 2}
@@ -1854,10 +1863,10 @@ MonoBehaviour:
       colorIndex: 0
       position:
         serializedVersion: 2
-        x: 451.960938
-        y: 170.171875
+        x: 420.960938
+        y: 173.171875
         width: 100
-        height: 32
+        height: 48
       isBreakpoint: 0
       isSequence: 0
       hideUnused: 0
@@ -1870,15 +1879,34 @@ MonoBehaviour:
         linkStyle: 0
         linkConstraint: 0
         colorIndex: 0
+      - fsmEvent:
+          name: Charge
+          isSystemEvent: 0
+          isGlobal: 1
+        toState: Round1
+        linkStyle: 0
+        linkConstraint: 0
+        colorIndex: 0
       actionData:
-        actionNames: []
-        customNames: []
-        actionEnabled: 
-        actionIsOpen: 
-        actionStartIndex: 
-        actionHashCodes: 
-        unityObjectParams: []
-        fsmGameObjectParams: []
+        actionNames:
+        - HutongGames.PlayMaker.Actions.SelectRandomUnitFromOtherSide
+        - HutongGames.PlayMaker.Actions.ForceEnemyNihility
+        customNames:
+        - 
+        - 
+        actionEnabled: 0101
+        actionIsOpen: 0101
+        actionStartIndex: 0000000007000000
+        actionHashCodes: 4275cf94cd02e51b
+        unityObjectParams:
+        - {fileID: 11404018}
+        fsmGameObjectParams:
+        - useVariable: 0
+          name: 
+          tooltip: 
+          showInInspector: 0
+          networkSync: 0
+          value: {fileID: 100006, guid: a30fc61a9bb584016bb87a2aee9bf82d, type: 2}
         fsmOwnerDefaultParams: []
         animationCurveParams: []
         functionCallParams: []
@@ -1887,17 +1915,41 @@ MonoBehaviour:
         fsmPropertyParams: []
         layoutOptionParams: []
         fsmStringParams: []
-        fsmObjectParams: []
+        fsmObjectParams:
+        - useVariable: 1
+          name: selected unit
+          tooltip: 
+          showInInspector: 0
+          networkSync: 0
+          typeName: Unit
+          value: {fileID: 0}
+        - useVariable: 1
+          name: selected unit
+          tooltip: 
+          showInInspector: 0
+          networkSync: 0
+          typeName: Unit
+          value: {fileID: 0}
         fsmVarParams: []
-        byteData: 
+        byteData: 01010101010100000000
         arrayParamSizes: 
         arrayParamTypes: []
         customTypeSizes: 
         customTypeNames: []
-        paramDataType: 
-        paramName: []
-        paramDataPos: 
-        paramByteDataSize: 
+        paramDataType: 05000000010000000100000001000000010000000100000018000000180000001300000010000000
+        paramName:
+        - unit
+        - idleUnit
+        - barricadUnit
+        - chargingUnit
+        - lossControllUnit
+        - nihility
+        - theRandomUnit
+        - nihilityUnitRef
+        - nihilityPerfab
+        - turnOfNihility
+        paramDataPos: 00000000000000000100000002000000030000000400000000000000010000000000000005000000
+        paramByteDataSize: 00000000010000000100000001000000010000000100000000000000000000000000000005000000
     - name: Round2
       description: 
       colorIndex: 0
@@ -1989,14 +2041,15 @@ MonoBehaviour:
       colorVariables: []
       rectVariables: []
       quaternionVariables: []
-      gameObjectVariables:
+      gameObjectVariables: []
+      objectVariables:
       - useVariable: 1
-        name: unitSelf
+        name: selected unit
         tooltip: 
         showInInspector: 0
         networkSync: 0
+        typeName: Unit
         value: {fileID: 0}
-      objectVariables: []
       materialVariables: []
       textureVariables: []
     description: 
@@ -13264,7 +13317,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 0}
       propertyPath: numTurnsToChargeUp
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 0}
       propertyPath: attackPower
