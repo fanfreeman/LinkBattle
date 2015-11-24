@@ -28,7 +28,7 @@ public class Meleer : Unit
 
         ProjectileMeleer projectile = projectileObj.GetComponent<ProjectileMeleer>();
         projectile.SetMeleerObject(gameObject);
-        projectile.Init(isAtBottom, boardX, currentAttackPower);
+        projectile.Init(isAtBottom, boardX, typeString, currentAttackPower);
 
         // 立刻清理此单位以及其队友
         foreach (Meleer unit in attackBuddies)

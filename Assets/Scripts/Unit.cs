@@ -44,8 +44,7 @@ public abstract class Unit : MonoBehaviour {
     public int turnOfLossControl;
     [HideInInspector]
     public int turnOfLossNihility;
-
-    private bool isFirstActivated = false;
+    [HideInInspector]
 
     protected static int outOfTopEdgeY = 12;
     protected static int outOfBottomEdgeY = -12;
@@ -76,7 +75,8 @@ public abstract class Unit : MonoBehaviour {
     Transform damageTransform;
 
     private float originalHealth; // 记录单位初始health值，因为heathMax在蓄力时会变
-    private bool isChargeUpFlagHolder = false; // 三连一组的蓄力组里显示status的那个单位
+    [HideInInspector]
+    public bool isChargeUpFlagHolder = false; // 三连一组的蓄力组里显示status的那个单位
     private BoxCollider2D myCollider;
 
     private static int currentUnitIdToAssign = 0;
@@ -224,17 +224,6 @@ public abstract class Unit : MonoBehaviour {
         }
     }
 
-    //set sortinglayer to current
-    private void SetSortingLayer(GameObject obj)
-    {
-        if(obj == null)return;
-        Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
-        foreach (Renderer renderer in renderers)
-        {
-            renderer.sortingLayerName = "row" + boardY.ToString();
-        }
-    }
-
     // 移动column高亮光柱
     void OnMouseEnter()
     {
@@ -310,7 +299,6 @@ public abstract class Unit : MonoBehaviour {
     public void ActivateChargeUp(Unit otherBuddy, Unit otherBuddy2, bool isFirst)
     {
         isActivated = true;
-        isFirstActivated = isFirst;
         // 显示效果
         if (enableParticles)
         {
@@ -397,9 +385,12 @@ public abstract class Unit : MonoBehaviour {
             }
             else
             {
-                unitStatusController.SetCountDown(turnOfLossNihility--);
+                if((isActivated && isChargeUpFlagHolder)||!isActivated)
+                    unitStatusController.SetCountDown(turnOfLossNihility--);
+                else
+                    turnOfLossNihility--;
             }
-            return -1;
+            return 1;
         }
         //loss conroll 记轮
         if (isLossControll)
@@ -599,7 +590,7 @@ public abstract class Unit : MonoBehaviour {
         lossControllObj = Instantiate(artLossControll, transform.position, Quaternion.identity) as GameObject;
         lossControllObj.transform.parent = this.transform;
         lossControllObj.SetActive(true);
-        SetSortingLayer(lossControllObj);
+        SetSortingLayerForObjectAccordingToRow(lossControllObj);
         isLossControll = true;
         this.turnOfLossControl = turnOfLossControl;
 
@@ -614,47 +605,74 @@ public abstract class Unit : MonoBehaviour {
     //虚无这个单位！
     public void Nihility(GameObject artNihilityObj, int turnOfLossNihility)
     {
-        if(isNihility)
+        if (isNihility)
         {
-            this.turnOfLossNihility += turnOfLossNihility;
-            unitStatusController.SetCountDown(this.turnOfLossNihility);
+            if (!isActivated)
+            {
+                this.turnOfLossNihility += turnOfLossNihility;
+            }
+            else
+            {
+                foreach (Unit buddy in attackBuddies)
+                {
+                    buddy.turnOfLossNihility += turnOfLossNihility;
+                    if(buddy.isChargeUpFlagHolder)
+                    {
+                        buddy.unitStatusController.SetCountDown(buddy.turnOfLossNihility);
+                    }
+                }
+
+            }
             return;
         }
 
-        if (nihilityObj != null)
-            Destroy(nihilityObj);
-
-        nihilityObj = artNihilityObj;
-        nihilityObj = Instantiate(artNihilityObj, transform.position, Quaternion.identity) as GameObject;
-        nihilityObj.transform.parent = this.transform;
-        nihilityObj.SetActive(true);
-        SetSortingLayer(nihilityObj);
-
-        isNihility = true;
-        this.turnOfLossNihility = turnOfLossNihility;
-
-        if(!isActivated)
+        if (!isActivated)
         {
+
+            if (!Equals(nihilityObj,artNihilityObj))
+            {
+                nihilityObj = Instantiate(artNihilityObj, transform.position, Quaternion.identity) as GameObject;
+                nihilityObj.transform.parent = this.transform;
+            }
+
+            nihilityObj.SetActive(true);
+            SetSortingLayerForObjectAccordingToRow(nihilityObj);
+
+            isNihility = true;
+
+            this.turnOfLossNihility = turnOfLossNihility;
             barricadeObj.SetActive(false);
             if(lossControllObj != null)
                 lossControllObj.SetActive(false);
             unitArt.gameObject.SetActive(false);
 
-            InitUnitStatusControllerIfNeeded();
-            unitStatusController.HideHealth();
+            unitStatusCanvas.SetActive(true);
+            unitStatusController = unitStatusCanvas.GetComponent<UnitStatusController>();
             unitStatusController.SetCountDown(turnOfLossNihility);
-        }else{
-            if(isFirstActivated)
+        }
+        else//如果虚无的是三联
+        {
+            foreach (Unit buddy in attackBuddies)
             {
-                barricadeObj.SetActive(false);
-                if(lossControllObj != null) lossControllObj.SetActive(false);
-                unitArt.gameObject.SetActive(false);
-                unitStatusController.SetCountDown(turnOfLossNihility);
+                if (!Equals(buddy.nihilityObj, artNihilityObj))
+                {
+                    if (buddy.nihilityObj != null) Destroy(buddy.nihilityObj);
+                    buddy.nihilityObj = Instantiate(artNihilityObj, buddy.transform.position, Quaternion.identity) as GameObject;
+                    buddy.nihilityObj.transform.parent = buddy.transform;
+                }
 
-            }else{
-                barricadeObj.SetActive(false);
-                if(lossControllObj != null)lossControllObj.SetActive(false);
-                unitArt.gameObject.SetActive(false);
+                buddy.nihilityObj.SetActive(true);
+                buddy.SetSortingLayerForObjectAccordingToRow(buddy.nihilityObj);
+
+                buddy.isNihility = true;
+
+                buddy.turnOfLossNihility = turnOfLossNihility;
+                buddy.unitArt.gameObject.SetActive(false);
+
+                if (buddy.isChargeUpFlagHolder)
+                {
+                    buddy.unitStatusController.SetCountDown(turnOfLossNihility);
+                }
             }
         }
     }
@@ -713,19 +731,16 @@ public abstract class Unit : MonoBehaviour {
         else if(isActivated)
         {
             unitArt.gameObject.SetActive(true);
-            if(isFirstActivated)
+            if(isChargeUpFlagHolder)
             {
-                InitUnitStatusControllerIfNeeded();
+                unitArt.gameObject.SetActive(true);
                 unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
-                unitStatusController.ShowHealth();
-                unitStatusController.SetAttackPower(currentAttackPower);
-                unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
-
             }
             else{
-                unitStatusController = null;
-                unitStatusCanvas.SetActive(false);
+                unitArt.gameObject.SetActive(true);
             }
+        }else{
+            unitArt.gameObject.SetActive(true);
         }
         Destroy(nihilityObj);
     }
@@ -735,7 +750,6 @@ public abstract class Unit : MonoBehaviour {
     public void ResetUnitStatusForRecycling()
     {
         isActivated = false;
-
         if (isBarricade)
         {
             isBarricade = false;
@@ -746,11 +760,20 @@ public abstract class Unit : MonoBehaviour {
             barricadeObj.SetActive(false);
         }
 
+        if(isNihility)
+        {
+            isNihility = false;
+            turnOfLossNihility = 0;
+            Destroy(nihilityObj);
+        }
+
         if (isLossControll)
         {
             CancelLossControllStatus();
+            turnOfLossControl = 0;
         }
 
+        unitArt.gameObject.SetActive(true);
         myCollider.enabled = true;
         healthMax = originalHealth;
         SetHealth(healthMax);

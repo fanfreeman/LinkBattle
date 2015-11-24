@@ -1200,25 +1200,15 @@ MonoBehaviour:
       actionData:
         actionNames:
         - HutongGames.PlayMaker.Actions.GetProperty
-        - HutongGames.PlayMaker.Actions.GetComponent
         customNames:
         - 
-        - 
-        actionEnabled: 0101
-        actionIsOpen: 0101
-        actionStartIndex: 0000000002000000
-        actionHashCodes: d23668dc9a2394ea
+        actionEnabled: 01
+        actionIsOpen: 01
+        actionStartIndex: 00000000
+        actionHashCodes: d23668dc
         unityObjectParams: []
         fsmGameObjectParams: []
-        fsmOwnerDefaultParams:
-        - ownerOption: 1
-          gameObject:
-            useVariable: 1
-            name: 
-            tooltip: 
-            showInInspector: 0
-            networkSync: 0
-            value: {fileID: 0}
+        fsmOwnerDefaultParams: []
         animationCurveParams: []
         functionCallParams: []
         fsmTemplateControlParams: []
@@ -1336,29 +1326,19 @@ MonoBehaviour:
           setProperty: 0
         layoutOptionParams: []
         fsmStringParams: []
-        fsmObjectParams:
-        - useVariable: 1
-          name: 
-          tooltip: 
-          showInInspector: 0
-          networkSync: 0
-          typeName: UnityEngine.Object
-          value: {fileID: 0}
+        fsmObjectParams: []
         fsmVarParams: []
-        byteData: 0000
+        byteData: 00
         arrayParamSizes: 
         arrayParamTypes: []
         customTypeSizes: 
         customTypeNames: []
-        paramDataType: 2400000001000000140000001800000001000000
+        paramDataType: 2400000001000000
         paramName:
         - targetProperty
         - everyFrame
-        - gameObject
-        - storeComponent
-        - everyFrame
-        paramDataPos: 0000000000000000000000000000000001000000
-        paramByteDataSize: 0000000001000000000000000000000001000000
+        paramDataPos: 0000000000000000
+        paramByteDataSize: 0000000001000000
     - name: Attack
       description: 
       colorIndex: 0
@@ -1665,7 +1645,7 @@ MonoBehaviour:
           tooltip: 
           showInInspector: 0
           networkSync: 0
-          value: {fileID: 100006, guid: 952d02c5796324650ab659e484a91d81, type: 2}
+          value: {fileID: 100006, guid: eaa8a7e46a3894873b85eab3af0ba86f, type: 2}
         fsmOwnerDefaultParams:
         - ownerOption: 0
           gameObject:

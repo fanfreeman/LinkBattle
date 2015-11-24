@@ -12,10 +12,20 @@ public class Projectile : MonoBehaviour {
     [HideInInspector]
     public int column;
 
+    [HideInInspector]
+    public string typeString;
+    public string GetTypeString()
+    {
+        return typeString;
+    }
+
+
+
     // 以下两种伤害模式只能二选一
     [HideInInspector]
     public float remainingDamage = 0f; // 抛射物的总伤害值
     float perUnitDamage = 0f; // 抛射物对此列每一单位的伤害值
+
 
     Rigidbody2D rb2D;
     Vector3 moveTarget;
@@ -29,8 +39,11 @@ public class Projectile : MonoBehaviour {
         enabled = false;
     }
 
-    public virtual void Init(bool belongsToBottom, int col, float totalAttackPower)
+    public virtual void Init(bool belongsToBottom, int col, string unitTypeString, float totalAttackPower)
     {
+
+        typeString = unitTypeString;
+
         remainingDamage = totalAttackPower;
         if (remainingDamage > 0 && perUnitDamage > 0) throw new System.Exception("Total Damage and Per Unit Damage cannot both be set");
 

@@ -34,8 +34,8 @@ public class BoardManager : Photon.MonoBehaviour {
     private List<Vector3> gridCoordinatesBottom = new List<Vector3>();
 
     // 存储所有单位的数组matrix
-    private List<Unit> unitGridTop;
-    private List<Unit> unitGridBottom;
+    public List<Unit> unitGridTop;
+    public List<Unit> unitGridBottom;
 
     // 兵种种类列表
     public enum UnitTypes : int {
@@ -270,6 +270,7 @@ public class BoardManager : Photon.MonoBehaviour {
             }
         }
         currentRandomPositionIndex++;
+        Debug.Log("随机选择单位结果为null");
         return null;//很小的可能性都被控制了哟！
     }
 
@@ -415,7 +416,8 @@ public class BoardManager : Photon.MonoBehaviour {
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated &&
                 !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade&& // 确保三个单位都没有在蓄力或变成路障
-                !unit.isLossControll && !unitInFront.isLossControll && !unitTwoInFront.isLossControll  // 确保三个单位都没有被控制
+                !unit.isLossControll && !unitInFront.isLossControll && !unitTwoInFront.isLossControll&&
+                !unit.isNihility && !unitInFront.isNihility && !unitTwoInFront.isNihility// 确保三个单位都没有被虚无
             )
             {
                 unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
@@ -441,7 +443,10 @@ public class BoardManager : Photon.MonoBehaviour {
             if (unit.GetTypeString() != unitTwoInFront.GetTypeString()) return;
 
             if (!unit.isActivated && !unitInFront.isActivated && !unitTwoInFront.isActivated &&
-                !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade) // 确保三个单位都没有在蓄力或变成路障
+                !unit.isBarricade && !unitInFront.isBarricade && !unitTwoInFront.isBarricade&&
+                !unit.isLossControll && !unitInFront.isLossControll && !unitTwoInFront.isLossControll&&
+                !unit.isNihility && !unitInFront.isNihility && !unitTwoInFront.isNihility
+            ) // 确保三个单位都没有在蓄力或变成路障
             {
                 unit.ActivateChargeUp(unitInFront, unitTwoInFront, true); // 组成三连formation
                 unit.EnableChargeUpStatusDisplay(); // 队尾单位显示status
