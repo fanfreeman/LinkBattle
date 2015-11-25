@@ -258,6 +258,7 @@ public class BoardManager : Photon.MonoBehaviour {
                 if (unit != null)
                 if (
                     unit.GetPositionValues().Equals(randomPositionVec) &&
+                        //无视除一切受到相应效果但是又不要相应效果的单位
                     !((unit.isBarricade == true) && (isBarricading == false))&&
                     !((unit.isActivated == true) && (isCharing == false))&&
                     !((unit.isLossControll == true) && (isLossingControll == false))&&

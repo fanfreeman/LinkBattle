@@ -13,23 +13,23 @@ namespace HutongGames.PlayMaker.Actions{
 
         [RequiredField]
         [Tooltip("能被控制也没事干的单位")]
-        public bool idleUnit = true;//随机选择的敌人存储到这里 可以为null
+        public bool idleUnit = true;
 
         [RequiredField]
         [Tooltip("城墙要不要")]
-        public bool barricadUnit;//随机选择的敌人存储到这里 可以为null
+        public bool barricadUnit;
 
         [RequiredField]
         [Tooltip("三联单位要不要")]
-        public bool chargingUnit;//随机选择的敌人存储到这里 可以为null
+        public bool chargingUnit;
 
         [RequiredField]
         [Tooltip("失去控制的单位要不要")]
-        public bool lossControllUnit;//随机选择的敌人存储到这里 可以为null
+        public bool lossControllUnit;
 
         [RequiredField]
         [Tooltip("虚无的单位要不要")]
-        public bool nihility;//随机选择的敌人存储到这里 可以为null
+        public bool nihility;
 
 
         [UIHint(UIHint.Variable)]
@@ -200,12 +200,12 @@ namespace HutongGames.PlayMaker.Actions{
         [UIHint(UIHint.Variable)]
         [RequiredField]
         [Tooltip("自己是上班还是下边")]
-        public FsmBool belongsToBottomPlayer;//随机选择的敌人存储到这里 可以为null
+        public FsmBool belongsToBottomPlayer;//上边还是下边
 
         [UIHint(UIHint.Variable)]
         [RequiredField]
         [Tooltip("Must be type PlaymakerUnitArray")]
-        public FsmObject unitUnion;//随机选择的敌人存储到这里 可以为null
+        public FsmObject unitUnion;//敌人的reference将会存在这里
 
         /// <summary>
         ///选取所有敌人
@@ -219,11 +219,17 @@ namespace HutongGames.PlayMaker.Actions{
                 //三联只要队长
                 foreach (Unit unit in BoardManager.instance.unitGridTop)
                 {
-                    if(unit !=null)
-                        if(!(unit.isActivated && !unit.isChargeUpFlagHolder))
+                    if (unit !=null)
+                        if (!unit.isActivated)
                         {
                             temp.Add(unit);
                         }
+                        else if (unit.isChargeUpFlagHolder)
+                        {
+                            temp.Add(unit);
+                        }
+
+
                 }
                 output.SetUnits(temp);
             }
@@ -231,11 +237,15 @@ namespace HutongGames.PlayMaker.Actions{
             {
                 foreach (Unit unit in BoardManager.instance.unitGridBottom)
                 {
-                    if(unit !=null)
-                    if(!(unit.isActivated && !unit.isChargeUpFlagHolder))
-                    {
-                        temp.Add(unit);
-                    }
+                    if (unit !=null)
+                        if (!unit.isActivated)
+                        {
+                            temp.Add(unit);
+                        }
+                        else if (unit.isChargeUpFlagHolder)
+                        {
+                            temp.Add(unit);
+                        }
                 }
                 output.SetUnits(temp);
             }
@@ -253,7 +263,7 @@ namespace HutongGames.PlayMaker.Actions{
             if(unitUnion.TypeName != typeof(PlaymakerUnitArray).ToString())
                 return "error return parameter";
             if(belongsToBottomPlayer == null)
-                return "your side!";
+                return "which side!";
 
             return string.Empty;
         }

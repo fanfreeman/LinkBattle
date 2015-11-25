@@ -239,6 +239,12 @@ public abstract class Unit : MonoBehaviour {
         {
             if (GameManager.instance.playersTurn)
             {
+                //不可以pickup失控的单位
+                if(isLossControll)
+                {
+                    Debug.Log("不能pickup失控单位");
+                    return;
+                }
                 // 如此单位在column底部，将其移出该column（捡起）
                 if (BoardManager.instance.unitBeingPickedUp == null && !isActivated && BoardManager.instance.BottomHalf_CheckIfUnitIsAtTail(this))
                 {
@@ -613,6 +619,11 @@ public abstract class Unit : MonoBehaviour {
             }
             else
             {
+                this.turnOfLossNihility += turnOfLossNihility;
+                if(isChargeUpFlagHolder)
+                {
+                    unitStatusController.SetCountDown(turnOfLossNihility);
+                }
                 foreach (Unit buddy in attackBuddies)
                 {
                     buddy.turnOfLossNihility += turnOfLossNihility;
@@ -652,6 +663,28 @@ public abstract class Unit : MonoBehaviour {
         }
         else//如果虚无的是三联
         {
+            //当前
+            if (!Equals(nihilityObj, artNihilityObj))
+            {
+                if (nihilityObj != null) Destroy(nihilityObj);
+                nihilityObj = Instantiate(artNihilityObj, transform.position, Quaternion.identity) as GameObject;
+                nihilityObj.transform.parent = transform;
+            }
+
+            nihilityObj.SetActive(true);
+            SetSortingLayerForObjectAccordingToRow(nihilityObj);
+
+            isNihility = true;
+
+            this.turnOfLossNihility = turnOfLossNihility;
+            unitArt.gameObject.SetActive(false);
+
+            if (isChargeUpFlagHolder)
+            {
+                unitStatusController.SetCountDown(turnOfLossNihility);
+            }
+
+            //另外两个队友
             foreach (Unit buddy in attackBuddies)
             {
                 if (!Equals(buddy.nihilityObj, artNihilityObj))
@@ -733,14 +766,14 @@ public abstract class Unit : MonoBehaviour {
             unitArt.gameObject.SetActive(true);
             if(isChargeUpFlagHolder)
             {
-                unitArt.gameObject.SetActive(true);
                 unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
             }
-            else{
-                unitArt.gameObject.SetActive(true);
-            }
+
+
         }else{
             unitArt.gameObject.SetActive(true);
+            unitStatusController = null;
+            unitStatusCanvas.SetActive(false);
         }
         Destroy(nihilityObj);
     }
