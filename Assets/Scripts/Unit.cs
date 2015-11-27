@@ -39,8 +39,6 @@ public abstract class Unit : MonoBehaviour {
     [HideInInspector]
     public GameObject lossControllObj;
     [HideInInspector]
-    public GameObject nihilityObj;
-    [HideInInspector]
     public int turnOfLossControl;
     [HideInInspector]
     public int turnOfLossNihility;
@@ -49,6 +47,7 @@ public abstract class Unit : MonoBehaviour {
     protected static int outOfTopEdgeY = 12;
     protected static int outOfBottomEdgeY = -12;
 
+    private float nihilityAlpha = 0.46f;
     //select unit type by someone not a coder
     public BoardManager.UnitTypes unitType;
     public BoardManager.UnitTypes GetUnitType()
@@ -92,6 +91,7 @@ public abstract class Unit : MonoBehaviour {
         unitArt = transform.Find("Hip");
 
         shaderSetUpScript = GetComponent<ShaderSetUp>();
+
         animController = unitFeaturesTransform.GetComponent<UnitAnimationController>();
         SetHealth(healthMax);
         originalHealth = healthMax;
@@ -609,7 +609,7 @@ public abstract class Unit : MonoBehaviour {
     }
 
     //虚无这个单位！
-    public void Nihility(GameObject artNihilityObj, int turnOfLossNihility)
+    public void Nihility(int turnOfLossNihility)
     {
         if (isNihility)
         {
@@ -627,7 +627,7 @@ public abstract class Unit : MonoBehaviour {
                 foreach (Unit buddy in attackBuddies)
                 {
                     buddy.turnOfLossNihility += turnOfLossNihility;
-                    if(buddy.isChargeUpFlagHolder)
+                    if (buddy.isChargeUpFlagHolder)
                     {
                         buddy.unitStatusController.SetCountDown(buddy.turnOfLossNihility);
                     }
@@ -639,23 +639,16 @@ public abstract class Unit : MonoBehaviour {
 
         if (!isActivated)
         {
-
-            if (!Equals(nihilityObj,artNihilityObj))
-            {
-                nihilityObj = Instantiate(artNihilityObj, transform.position, Quaternion.identity) as GameObject;
-                nihilityObj.transform.parent = this.transform;
-            }
-
-            nihilityObj.SetActive(true);
-            SetSortingLayerForObjectAccordingToRow(nihilityObj);
-
+            shaderSetUpScript.SetUnitArtAlpha(nihilityAlpha);
             isNihility = true;
 
             this.turnOfLossNihility = turnOfLossNihility;
-            barricadeObj.SetActive(false);
+            if (isBarricade)
+                ShaderSetUp.SetUnitArtAlpha(barricadeObj, nihilityAlpha);
+
             if(lossControllObj != null)
-                lossControllObj.SetActive(false);
-            unitArt.gameObject.SetActive(false);
+                ShaderSetUp.SetUnitArtAlpha(lossControllObj, nihilityAlpha);
+            shaderSetUpScript.SetUnitArtAlpha(nihilityAlpha);
 
             unitStatusCanvas.SetActive(true);
             unitStatusController = unitStatusCanvas.GetComponent<UnitStatusController>();
@@ -664,20 +657,10 @@ public abstract class Unit : MonoBehaviour {
         else//如果虚无的是三联
         {
             //当前
-            if (!Equals(nihilityObj, artNihilityObj))
-            {
-                if (nihilityObj != null) Destroy(nihilityObj);
-                nihilityObj = Instantiate(artNihilityObj, transform.position, Quaternion.identity) as GameObject;
-                nihilityObj.transform.parent = transform;
-            }
-
-            nihilityObj.SetActive(true);
-            SetSortingLayerForObjectAccordingToRow(nihilityObj);
-
+            shaderSetUpScript.SetUnitArtAlpha(nihilityAlpha);
             isNihility = true;
 
             this.turnOfLossNihility = turnOfLossNihility;
-            unitArt.gameObject.SetActive(false);
 
             if (isChargeUpFlagHolder)
             {
@@ -687,20 +670,11 @@ public abstract class Unit : MonoBehaviour {
             //另外两个队友
             foreach (Unit buddy in attackBuddies)
             {
-                if (!Equals(buddy.nihilityObj, artNihilityObj))
-                {
-                    if (buddy.nihilityObj != null) Destroy(buddy.nihilityObj);
-                    buddy.nihilityObj = Instantiate(artNihilityObj, buddy.transform.position, Quaternion.identity) as GameObject;
-                    buddy.nihilityObj.transform.parent = buddy.transform;
-                }
-
-                buddy.nihilityObj.SetActive(true);
-                buddy.SetSortingLayerForObjectAccordingToRow(buddy.nihilityObj);
+                buddy.shaderSetUpScript.SetUnitArtAlpha(nihilityAlpha);
 
                 buddy.isNihility = true;
 
                 buddy.turnOfLossNihility = turnOfLossNihility;
-                buddy.unitArt.gameObject.SetActive(false);
 
                 if (buddy.isChargeUpFlagHolder)
                 {
@@ -752,18 +726,17 @@ public abstract class Unit : MonoBehaviour {
         isNihility = false;
         if(isLossControll)
         {
-            lossControllObj.SetActive(true);
+            ShaderSetUp.SetUnitArtAlpha(lossControllObj, 1f);
             unitStatusController.SetCountDown(turnOfLossControl);
         }
         else if(isBarricade)
         {
-            barricadeObj.SetActive(true);
+            ShaderSetUp.SetUnitArtAlpha(barricadeObj, 1f);
             unitStatusController = null;
             unitStatusCanvas.SetActive(false);
         }
         else if(isActivated)
         {
-            unitArt.gameObject.SetActive(true);
             if(isChargeUpFlagHolder)
             {
                 unitStatusController.SetCountDown(numTurnsToChargeUpLeft);
@@ -771,11 +744,10 @@ public abstract class Unit : MonoBehaviour {
 
 
         }else{
-            unitArt.gameObject.SetActive(true);
             unitStatusController = null;
             unitStatusCanvas.SetActive(false);
         }
-        Destroy(nihilityObj);
+        shaderSetUpScript.SetUnitArtAlpha(1f);
     }
 
 
@@ -797,7 +769,7 @@ public abstract class Unit : MonoBehaviour {
         {
             isNihility = false;
             turnOfLossNihility = 0;
-            Destroy(nihilityObj);
+            shaderSetUpScript.SetUnitArtAlpha(1f);
         }
 
         if (isLossControll)

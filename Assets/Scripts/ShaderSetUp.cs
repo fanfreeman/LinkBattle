@@ -9,7 +9,7 @@ public class ShaderSetUp : MonoBehaviour {
     private SpriteRenderer[] sRens;
     private List<Shader> initShader = new List<Shader>();
 
-	void Start () {
+	void Awake () {
         sRens = gameObject.GetComponentsInChildren<SpriteRenderer>();
         getInitMaterial();
     }
@@ -41,6 +41,28 @@ public class ShaderSetUp : MonoBehaviour {
         foreach(SpriteRenderer sRen in sRens) {
             sRen.material.shader = initShader[pointer];
             pointer++;
+        }
+    }
+
+    //设置alpha
+    public void SetUnitArtAlpha(float a)
+    {
+        foreach(SpriteRenderer sRen in sRens) {
+            Color c = sRen.color;
+            c.a = a;
+            sRen.color = c;
+        }
+    }
+
+    public static void SetUnitArtAlpha(GameObject obj,float a)
+    {
+        SpriteRenderer[] sRensObj;
+        sRensObj = obj.GetComponentsInChildren<SpriteRenderer>();
+
+        foreach(SpriteRenderer sRen in sRensObj) {
+            Color c = sRen.color;
+            c.a = a;
+            sRen.color = c;
         }
     }
 }

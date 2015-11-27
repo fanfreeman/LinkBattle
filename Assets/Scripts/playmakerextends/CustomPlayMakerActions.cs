@@ -140,7 +140,6 @@ namespace HutongGames.PlayMaker.Actions{
         [UIHint(UIHint.Variable)]
         public FsmObject nihilityUnitRef;
 
-        [RequiredField]
         [Tooltip("失控时的效果。例如:被变成石头")]
         public FsmGameObject nihilityPerfab;
 
@@ -156,7 +155,7 @@ namespace HutongGames.PlayMaker.Actions{
             {
                 Unit nihilityUnit = nihilityUnitRef.Value as Unit;
                 if (nihilityUnit != null)
-                    nihilityUnit.Nihility(nihilityPerfab.Value, turnOfNihility.Value);
+                    nihilityUnit.Nihility(turnOfNihility.Value);
             }
             else
             {
@@ -168,7 +167,7 @@ namespace HutongGames.PlayMaker.Actions{
                 }
                 foreach (Unit unit in result)
                 {
-                    unit.Nihility(nihilityPerfab.Value, turnOfNihility.Value);
+                    unit.Nihility(turnOfNihility.Value);
                 }
             }
         }
